@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
-import { Sora } from "next/font/google";
+import { Tinos, Arimo } from "next/font/google";
 import "./globals.scss";
 
-export const sora = Sora({
+export const tinos = Tinos({
   subsets: ["latin"],
-  weight: ["400", "600", "700"], // opcional
+  weight: ["400", "700"],
+  variable: "--font-tinos",
+  display: "swap",
+});
+
+export const arimo = Arimo({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-arimo",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -14,11 +23,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en" className={sora.className}>
+    <html lang="pt-BR" className={`${tinos.variable} ${arimo.variable}`}>
       <body>{children}</body>
     </html>
   );

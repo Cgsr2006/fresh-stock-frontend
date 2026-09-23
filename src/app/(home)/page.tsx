@@ -3,119 +3,227 @@
 import Image from "next/image";
 import "./style.scss";
 
-import SvgFreshStockIcon from "@/public/FreshStockIcon.svg";
+import React, { useEffect, useState } from "react";
+import { IProductData, tabsTitle } from "@/src/utils/types";
 import {
-  createNewProduct,
-  useProducts,
-  deleteProduct,
-  updateProduct,
-} from "@/src/services/product/productMetods";
-import { ProductsTable } from "@/src/components/ProductsTable";
-import { useEffect, useState } from "react";
-import {
-  IAddNewProductData,
-  IProduct,
-  productCategory,
-} from "@/src/utils/types";
-import { mockedProductsData } from "@/src/utils/data";
+  mockedCategoriesData,
+  mockedProductsData,
+  TABS,
+} from "@/src/utils/data";
+import SvgBoxIconSelected from "@/public/BoxIconSelected.svg";
+import SvgPlusIcon from "@/public/PlusIcon.svg";
+import SvgLabelIcon from "@/public/LabelIcon.svg";
+import SvgGreyPlusIcon from "@/public/GreyPlusIcon.svg";
+import SvgNoProductsIcon from "@/public/NoProductsIcon.svg";
+import SvgArowDownIcon from "@/public/ArowDownIcon.svg";
 
-function sideBar() {
-  return <section></section>;
+interface sideBarProps {
+  activeTab: tabsTitle;
+  setActiveTab: React.Dispatch<React.SetStateAction<tabsTitle>>;
 }
 
-function prductsTable() {
-  return <section></section>;
+function SideBar({ setActiveTab, activeTab }: sideBarProps) {
+  return (
+    <section className="side-bar">
+      <header className="header">
+        <div className="icon-box">
+          <Image src={SvgBoxIconSelected} alt="" className="icon" />
+        </div>
+        <h1>FreshStock</h1>
+      </header>
+
+      <div className="tabs">
+        {TABS.map((tab, index) => {
+          const active = tab.title === activeTab;
+
+          return (
+            <button
+              key={`tab-${index}`}
+              className={`tab ${active ? "active" : ""}`}
+              onClick={() => setActiveTab(tab.title)}
+            >
+              <Image
+                src={active ? tab.selectedIcon : tab.unselectedIcon}
+                alt=""
+              />
+              <span>{tab.title}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="profile">
+        <div className="user-icon" />
+        <div className="user-info">
+          <h1>Manager</h1>
+          <small>Admin</small>
+        </div>
+      </div>
+    </section>
+  );
 }
 
-function categoriesGrid() {
-  return <section></section>;
+interface productTableProps {
+  productsData: IProductData[];
 }
 
-function dashBoard() {
-  return <section></section>;
-}
+function ProductsTable({ productsData }: productTableProps) {
+  if (!productsData || productsData.length === 0) {
+    return (
+      <div className="no-products">
+        <Image src={SvgNoProductsIcon} alt="Nenhum produto disponível" />
+        <p>Nenhum produto disponível no momento.</p>
+      </div>
+    );
+  } else {
+    return (
+      <section className="products-table">
+        <div className="header">
+          <input type="text" placeholder="Buscar produtos..." />
 
-export default function Home() {
-  const [addNewProduct, setAddNewProduct] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [editProduct, setEditProduct] = useState<null | number>(null);
+          <div className="filter">
+            <span>Filtrar: </span>
 
-  const { data, mutate } = useProducts(selectedCategory);
-  const productsInfo = data ? data : mockedProductsData;
+            <select className="category-select">
+              <option value="">All</option>{" "}
+              {mockedCategoriesData.map((category, index) => (
+                <option key={`${category.name}-${index}`} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
-  async function handleAddNewProduct(data: IAddNewProductData) {
-    await createNewProduct(data);
+        <form className="body">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nome do Produto</th>
+                <th>Preço</th>
+                <th>Em Estoque</th>
+                <th>Categoria</th>
+                <th className="action">Ações</th>
+              </tr>
+            </thead>
 
-    mutate();
-    setAddNewProduct(false);
+            <tbody>
+              {productsData.map((product) => {
+                const categoryName = mockedCategoriesData.find(
+                  (e) => e.id === product.categoryId,
+                );
+
+                return (
+                  <tr key={product.id} className="product-row">
+                    <td>{product.id}</td>
+                    <td>{product.name}</td>
+                    <td className="price">R$ {product.price}</td>
+                    <td className="stock">{product.qtdInStock} unid.</td>
+                    <td className="category">{categoryName?.name}</td>
+                    <td className="action"></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </form>
+      </section>
+    );
   }
+}
 
-  async function handleUpdateProduct(data: IProduct) {
-    await updateProduct(data);
-    mutate();
-    setEditProduct(null);
-  }
+function CategoriesGrid() {
+  const [categoriesData, setCategoriesData] = useState(mockedCategoriesData);
 
-  async function handleDeleteProduct(id: number) {
-    const res = await deleteProduct(id);
+  function addNewCategory() {
+    const lastIndex = mockedCategoriesData.length - 1;
+    const lastId = mockedCategoriesData[lastIndex].id;
 
-    if (res) {
-      mutate();
-    }
+    mockedCategoriesData.push({
+      id: lastId + 1,
+      name: "Food",
+      qtdProductsInStock: 0,
+    });
+
+    localStorage.setItem("categories", JSON.stringify(mockedCategoriesData));
+    setCategoriesData(JSON.parse(localStorage.getItem("categories") ?? "[]"));
   }
 
   useEffect(() => {
-    mutate();
-  }, [productsInfo]);
+    localStorage.setItem("categories", JSON.stringify(mockedCategoriesData));
+  }, []);
 
   return (
-    <main className="page home">
-      <div className="content">
-        <div className="title">
-          <Image src={SvgFreshStockIcon} alt="Fresh Stock Icon" />
-          <h1>Fresh Stock</h1>
-        </div>
-
-        <div className="body">
-          <div className="filters">
-            <div className="category-filter">
-              <label className="category-label">Filter by Category</label>
-
-              <select
-                className="category-select"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                disabled={addNewProduct || editProduct !== null}
-              >
-                <option value="">ALL</option>
-                <option value={productCategory.FOOD}>FOOD</option>
-                <option value={productCategory.DRINK}>DRINK</option>
-                <option value={productCategory.HYGIENE}>HYGIENE</option>
-                <option value={productCategory.CLEANING}>CLEANING</option>
-              </select>
-            </div>
-
-            <button
-              onClick={() => setAddNewProduct(true)}
-              className="create-button"
-              disabled={addNewProduct || editProduct !== null}
-            >
-              <p>+ Create</p>
-            </button>
+    <section className="categories-grid">
+      {categoriesData.map((category, index) => (
+        <div key={`${category}-${index}`} className="card">
+          <div className="icon">
+            <Image src={SvgLabelIcon} alt="" />
           </div>
-
-          <ProductsTable
-            products={productsInfo}
-            addNewProduct={addNewProduct}
-            editProduct={editProduct}
-            handleAddNewProduct={handleAddNewProduct}
-            setAddNewProduct={setAddNewProduct}
-            setEditProduct={setEditProduct}
-            deleteProduct={handleDeleteProduct}
-            handleUpdateProduct={handleUpdateProduct}
-          />
+          <div className="text">
+            <span>{category.name}</span>
+            <small>{category.qtdProductsInStock} produtos</small>
+          </div>
         </div>
+      ))}
+
+      <button className="new-category" onClick={() => addNewCategory()}>
+        <Image src={SvgGreyPlusIcon} alt="" />
+        <span>Criar nova categoria</span>
+      </button>
+    </section>
+  );
+}
+
+interface dasBoardProps {
+  activeTab: tabsTitle;
+}
+
+function DashBoard({ activeTab }: dasBoardProps) {
+  return (
+    <section className="dashBoard">
+      <div className="header">
+        <div className="title">
+          <h1>
+            {activeTab === tabsTitle.ESTOQUE
+              ? "Gestão de Estoque"
+              : "Categorias"}
+          </h1>
+          <p>
+            {activeTab === tabsTitle.ESTOQUE
+              ? "Gerencie seus produtos, preços e disponibilidade."
+              : "Organize os grupos de produtos do seu mercado."}
+          </p>
+        </div>
+
+        <button className="new-product">
+          <Image src={SvgPlusIcon} alt="" />
+
+          <span>
+            {activeTab === tabsTitle.ESTOQUE
+              ? "Novo Produto"
+              : "Nova Categoria"}
+          </span>
+        </button>
       </div>
-    </main>
+
+      {activeTab === tabsTitle.ESTOQUE ? (
+        <ProductsTable productsData={mockedProductsData} />
+      ) : (
+        <CategoriesGrid />
+      )}
+    </section>
+  );
+}
+
+export default function Home() {
+  const [activeTab, setActiveTab] = useState<tabsTitle>(tabsTitle.ESTOQUE);
+
+  return (
+    <div className="page home">
+      <SideBar setActiveTab={setActiveTab} activeTab={activeTab} />
+      <DashBoard activeTab={activeTab} />
+    </div>
   );
 }
