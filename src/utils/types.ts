@@ -1,21 +1,26 @@
-export enum productCategory {
-    FOOD = "FOOD",
-    DRINK = "DRINK",
-    HYGIENE = "HYGIENE",
-    CLEANING = "CLEANING",
+export enum tabsTitle {
+  ESTOQUE = "Estoque",
+  CATEGORIAS = "Categorias",
 }
 
-export interface IProduct {
-    id: number,
-    name: string,
-    price: number,
-    qtdInStock: number,
-    category: productCategory,
+// Interface usada para a tipagem das informações da entidade Categorias
+export interface ICategoryData {
+  id: number;
+  name: string;
+  qtdProductsInStock: number;
 }
 
-export interface IAddNewProductData {
-    name: string,
-    price: number,
-    qtdInStock: number,
-    category: productCategory,
+// Interface usada para a tipagem das informações da entidade Produtos
+export interface IProductData {
+  id: number;
+  name: string;
+  price: number;
+  qtdInStock: number;
+  categoryId: number;
+}
+
+export interface ITabs {
+  title: tabsTitle;
+  selectedIcon: string;
+  unselectedIcon: string;
 }
