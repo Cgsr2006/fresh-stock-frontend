@@ -11,23 +11,23 @@ import SvgFunnelIconUnselected from "@/public/FunnelIconUnselected.svg";
 
 export const mockedProductsData: IProductData[] = [
   {
-    id: 0,
-    name: "maçâ",
-    categoryId: 0, 
+    id: 1,
+    name: "maçã",
+    categoryId: 1, 
     price: 10.0,
     qtdInStock: 67,
   },
   {
-    id: 1,
+    id: 2,
     name: "banana",
-    categoryId: 0, 
+    categoryId: 1, 
     price: 15.0,
     qtdInStock: 69,
   },
   {
-    id: 2,
+    id: 3,
     name: "amaciante",
-    categoryId: 3, 
+    categoryId: 4, 
     price: 20.0,
     qtdInStock: 24,
   },
@@ -35,22 +35,22 @@ export const mockedProductsData: IProductData[] = [
 
 export const mockedCategoriesData: ICategoryData[] = [
   {
-    id: 0,
+    id: 1,
     name: "Food",
     qtdProductsInStock: 2,
   },
   {
-    id: 1,
+    id: 2,
     name: "Drink",
     qtdProductsInStock: 7,
   },
   {
-    id: 2,
+    id: 3,
     name: "Hygiene",
     qtdProductsInStock: 0,
   },
   {
-    id: 3,
+    id: 4,
     name: "Cleaning",
     qtdProductsInStock: 13,
   },

@@ -4,7 +4,20 @@ import Image from "next/image";
 import "./style.scss";
 
 import React, { useEffect, useState } from "react";
-import { IProductData, tabsTitle } from "@/src/utils/types";
+import {
+  Package,
+  Search,
+  Plus,
+  Filter,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Check,
+  X,
+  ChevronDown,
+  Tag,
+} from "lucide-react";
+import { ICategoryData, IProductData, tabsTitle } from "@/src/utils/types";
 import {
   mockedCategoriesData,
   mockedProductsData,
@@ -15,7 +28,6 @@ import SvgPlusIcon from "@/public/PlusIcon.svg";
 import SvgLabelIcon from "@/public/LabelIcon.svg";
 import SvgGreyPlusIcon from "@/public/GreyPlusIcon.svg";
 import SvgNoProductsIcon from "@/public/NoProductsIcon.svg";
-import SvgArowDownIcon from "@/public/ArowDownIcon.svg";
 
 interface sideBarProps {
   activeTab: tabsTitle;
@@ -68,33 +80,77 @@ interface productTableProps {
 }
 
 function ProductsTable({ productsData }: productTableProps) {
-  if (!productsData || productsData.length === 0) {
-    return (
-      <div className="no-products">
-        <Image src={SvgNoProductsIcon} alt="Nenhum produto disponível" />
-        <p>Nenhum produto disponível no momento.</p>
-      </div>
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedName, setSelectedName] = useState<string>("");
+  const [editCategory, setEditCategory] = useState<number>(-1);
+  const [productsDataControl, setProductsDataControl] =
+    useState<IProductData[]>(mockedProductsData);
+  const filteredMockedData = productsDataControl.filter((product) => {
+    const matchesCategory =
+      selectedCategory === "" ||
+      product.categoryId.toString() === selectedCategory;
+
+    const matchesName =
+      selectedName === "" || product.name.includes(selectedName);
+
+    return matchesCategory && matchesName;
+  });
+
+  useEffect(() => {
+    const storedProducts = localStorage.getItem("products");
+
+    if (storedProducts) {
+      setProductsDataControl(JSON.parse(storedProducts));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("products", JSON.stringify(productsDataControl));
+  }, [productsDataControl]);
+
+  function deleteProduct(id: number) {
+    setProductsDataControl((prevProducts) =>
+      prevProducts.filter((product) => product.id != id),
     );
-  } else {
-    return (
-      <section className="products-table">
-        <div className="header">
-          <input type="text" placeholder="Buscar produtos..." />
+  }
 
-          <div className="filter">
-            <span>Filtrar: </span>
+  return (
+    <section className="products-table">
+      <div className="header">
+        <input
+          type="text"
+          placeholder="Buscar produtos..."
+          value={selectedName}
+          onChange={(e) => setSelectedName(e.target.value)}
+        />
 
-            <select className="category-select">
-              <option value="">All</option>{" "}
-              {mockedCategoriesData.map((category, index) => (
-                <option key={`${category.name}-${index}`} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="filter">
+          <span>Filtrar: </span>
+
+          <select
+            className="category-select"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+          >
+            <option value="">All</option>{" "}
+            {mockedCategoriesData.map((category, index) => (
+              <option
+                key={`${category.name}-${index}`}
+                value={category.id.toString()}
+              >
+                {category.name}
+              </option>
+            ))}
+          </select>
         </div>
+      </div>
 
+      {productsDataControl.length === 0 || productsData.length === 0 ? (
+        <div className="no-products">
+          <Image src={SvgNoProductsIcon} alt="Nenhum produto disponível" />
+          <p>Nenhum produto disponível no momento.</p>
+        </div>
+      ) : (
         <form className="body">
           <table className="table">
             <thead>
@@ -109,61 +165,130 @@ function ProductsTable({ productsData }: productTableProps) {
             </thead>
 
             <tbody>
-              {productsData.map((product) => {
+              {filteredMockedData.map((product) => {
                 const categoryName = mockedCategoriesData.find(
                   (e) => e.id === product.categoryId,
                 );
 
                 return (
                   <tr key={product.id} className="product-row">
-                    <td>{product.id}</td>
+                    <td className="id">
+                      {product.id.toString().padStart(3, "0")}
+                    </td>
                     <td>{product.name}</td>
-                    <td className="price">R$ {product.price}</td>
-                    <td className="stock">{product.qtdInStock} unid.</td>
-                    <td className="category">{categoryName?.name}</td>
-                    <td className="action"></td>
+                    <td className="price">
+                      R${" "}
+                      {product.price.toLocaleString("pt-BR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </td>
+                    <td>
+                      <div className="stock">{product.qtdInStock} unid.</div>
+                    </td>
+                    <td>
+                      <div className="category">
+                        <Tag className="icon" />
+                        {categoryName?.name}
+                      </div>
+                    </td>
+                    <td className="action">
+                      <button onClick={() => setEditCategory(product.id)}>
+                        {product.id === editCategory ? (
+                          <Check className="icon" />
+                        ) : (
+                          <Pencil className="icon" />
+                        )}
+                      </button>
+                      <button
+                        className="alt"
+                        onClick={() => deleteProduct(product.id)}
+                      >
+                        <Trash2 className="icon" />
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </form>
-      </section>
-    );
-  }
+      )}
+
+      <footer>
+        <small>
+          Mostrando {filteredMockedData.length} de {mockedProductsData.length}{" "}
+          produtos
+        </small>
+      </footer>
+    </section>
+  );
 }
 
-function CategoriesGrid() {
-  const [categoriesData, setCategoriesData] = useState(mockedCategoriesData);
+interface categoriesGridProps {
+  categoriesData: ICategoryData[];
+}
 
-  function addNewCategory() {
-    const lastIndex = mockedCategoriesData.length - 1;
-    const lastId = mockedCategoriesData[lastIndex].id;
-
-    mockedCategoriesData.push({
-      id: lastId + 1,
-      name: "Food",
-      qtdProductsInStock: 0,
-    });
-
-    localStorage.setItem("categories", JSON.stringify(mockedCategoriesData));
-    setCategoriesData(JSON.parse(localStorage.getItem("categories") ?? "[]"));
-  }
+function CategoriesGrid({ categoriesData }: categoriesGridProps) {
+  const [categoriesDataControl, setCategoriesDataControl] =
+    useState<ICategoryData[]>(mockedCategoriesData);
 
   useEffect(() => {
-    localStorage.setItem("categories", JSON.stringify(mockedCategoriesData));
+    const storedCategories = localStorage.getItem("categories");
+
+    if (storedCategories) {
+      setCategoriesDataControl(JSON.parse(storedCategories));
+    }
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("categories", JSON.stringify(categoriesDataControl));
+  }, [categoriesDataControl]);
+
+  function addNewCategory() {
+    setCategoriesDataControl((prevCategories) => {
+      const lastId = prevCategories.length
+        ? Math.max(...prevCategories.map((category) => category.id))
+        : 0;
+
+      return [
+        ...prevCategories,
+        {
+          id: lastId + 1,
+          name: "Food",
+          qtdProductsInStock: 0,
+        },
+      ];
+    });
+  }
+
+  function deleteCategory(id: number) {
+    setCategoriesDataControl((prevCategories) =>
+      prevCategories.filter((category) => category.id != id),
+    );
+  }
 
   return (
     <section className="categories-grid">
-      {categoriesData.map((category, index) => (
-        <div key={`${category}-${index}`} className="card">
-          <div className="icon">
-            <Image src={SvgLabelIcon} alt="" />
+      {categoriesDataControl.map((category) => (
+        <div key={`${category.id}`} className="card">
+          <div className="left">
+            <div className="icon">
+              <Image src={SvgLabelIcon} alt="" />
+            </div>
+            <div className="text">
+              <span>{category.name}</span>
+              <small>{category.qtdProductsInStock} produtos</small>
+            </div>
           </div>
-          <div className="text">
-            <span>{category.name}</span>
-            <small>{category.qtdProductsInStock} produtos</small>
+
+          <div className="buttons">
+            <button>
+              <Pencil className="icon" />
+            </button>
+            <button className="alt" onClick={() => deleteCategory(category.id)}>
+              <Trash2 className="icon" />
+            </button>
           </div>
         </div>
       ))}
@@ -211,7 +336,7 @@ function DashBoard({ activeTab }: dasBoardProps) {
       {activeTab === tabsTitle.ESTOQUE ? (
         <ProductsTable productsData={mockedProductsData} />
       ) : (
-        <CategoriesGrid />
+        <CategoriesGrid categoriesData={mockedCategoriesData} />
       )}
     </section>
   );

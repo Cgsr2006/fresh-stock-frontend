@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import { IAddNewProductData, IProduct } from "@/src/utils/types";
+import { IProductData } from "@/src/utils/types";
 import { fetcher } from "../../utils/fetcher";
 
 export function useProducts(category?: string) {
@@ -8,10 +8,12 @@ export function useProducts(category?: string) {
       ? `http://localhost:8080/products/getProductsByCategory/${category}`
       : "http://localhost:8080/products/getAll";
 
-  return useSWR<IProduct[]>(url, fetcher);
+  return useSWR<IProductData[]>(url, fetcher);
 }
 
-export async function createNewProduct(data: IAddNewProductData) {
+export async function createNewProduct(
+  data: Pick<IProductData, "name" | "price" | "qtdInStock" | "categoryId">,
+) {
   try {
     const response = await fetch("http://localhost:8080/products/create", {
       method: "Post",
@@ -22,7 +24,7 @@ export async function createNewProduct(data: IAddNewProductData) {
         name: data.name,
         price: data.price,
         qtdInStock: data.qtdInStock,
-        category: data.category,
+        categoryId: data.categoryId,
       }),
     });
 
@@ -55,7 +57,7 @@ export async function deleteProduct(id: number): Promise<boolean | null> {
   }
 }
 
-export async function updateProduct(data: IProduct) {
+export async function updateProduct(data: IProductData) {
   try {
     const response = await fetch(
       `http://localhost:8080/products/updateById/${data.id}`,
@@ -68,7 +70,7 @@ export async function updateProduct(data: IProduct) {
           name: data.name,
           price: data.price,
           qtdInStock: data.qtdInStock,
-          category: data.category,
+          categoryId: data.categoryId,
         }),
       },
     );
