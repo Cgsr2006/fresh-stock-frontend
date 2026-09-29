@@ -17,6 +17,7 @@ import {
 import {
   ICategoryData,
   IProductData,
+  ITabs,
   tabsTitle,
 } from "@/src/utils/types";
 import {
@@ -87,7 +88,7 @@ function SideBar({ setActiveTab, activeTab }: sideBarProps) {
 interface productTableProps {
   productsData: IProductData[];
   newProduct: boolean;
-  setNewProduct: React.Dispatch<React.SetStateAction<boolean>>;
+  setNewProduct: React.Dispatch<React.SetStateAction<tabsTitle | null>>;
 }
 
 function ProductsTable({
@@ -98,8 +99,9 @@ function ProductsTable({
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedName, setSelectedName] = useState<string>("");
   const [editProductId, setEditProductId] = useState<number | null>(null); // Guarda um valor nulo ou o id do produto que será editado
-  const [productsDataControl, setProductsDataControl] =
-    useState<IProductData[]>(mockedProductsData);
+  const [productsDataControl, setProductsDataControl] = useState<
+    IProductData[]
+  >(productsData.length > 0 ? productsData : mockedProductsData);
   const filteredMockedData = productsDataControl.filter((product) => {
     const matchesCategory =
       selectedCategory === "" ||
@@ -158,7 +160,7 @@ function ProductsTable({
 
   function handleCreateProduct() {
     setProductsDataControl((prev) => createProduct(prev, formData.getValues()));
-    setNewProduct(false);
+    setNewProduct(null);
   }
 
   return (
@@ -400,7 +402,7 @@ function ProductsTable({
                     </button>
 
                     <button
-                      onClick={() => setNewProduct(false)}
+                      onClick={() => setNewProduct(null)}
                       type="button"
                       className="alt"
                     >
@@ -427,7 +429,7 @@ function ProductsTable({
 interface categoriesGridProps {
   categoriesData: ICategoryData[];
   newCategory: boolean;
-  setNewCategory: React.Dispatch<React.SetStateAction<boolean>>;
+  setNewCategory: React.Dispatch<React.SetStateAction<tabsTitle | null>>;
 }
 
 function CategoriesGrid({
@@ -435,8 +437,9 @@ function CategoriesGrid({
   newCategory,
   setNewCategory,
 }: categoriesGridProps) {
-  const [categoriesDataControl, setCategoriesDataControl] =
-    useState<ICategoryData[]>(mockedCategoriesData);
+  const [categoriesDataControl, setCategoriesDataControl] = useState<
+    ICategoryData[]
+  >(categoriesData.length > 0 ? categoriesData : mockedCategoriesData);
   const [editCategoryId, setEditCategoryId] = useState<number | null>(null);
 
   const formData = useForm<Pick<ICategoryData, "name">>({
@@ -472,12 +475,12 @@ function CategoriesGrid({
     }
   }, [editCategoryId]);
 
-  function handleAddNewCategory() {
+  function handleCreateCategory() {
     setCategoriesDataControl((prev) =>
       createCategory(prev, formData.getValues()),
     );
 
-    setNewCategory(false);
+    setNewCategory(null);
   }
 
   function handleUpdateCategory(id: number) {
@@ -557,16 +560,16 @@ function CategoriesGrid({
           </div>
 
           <div className="buttons">
-            <button className="alt" onClick={() => setNewCategory(false)}>
+            <button className="alt" onClick={() => setNewCategory(null)}>
               Cancelar
             </button>
-            <button onClick={() => handleAddNewCategory()}>Criar</button>
+            <button onClick={() => handleCreateCategory()}>Criar</button>
           </div>
         </div>
       ) : (
         <button
           className="new-category-card"
-          onClick={() => setNewCategory(true)}
+          onClick={() => setNewCategory(tabsTitle.CATEGORIAS)}
         >
           <Plus size={20} />
           <span>Criar nova categoria</span>
@@ -582,7 +585,7 @@ interface dasBoardProps {
 
 function DashBoard({ activeTab }: dasBoardProps) {
   const [newProductOrCategory, setNewProductOrCategory] =
-    useState<boolean>(false);
+    useState<tabsTitle | null>(null);
 
   return (
     <section className="dashBoard">
@@ -602,8 +605,14 @@ function DashBoard({ activeTab }: dasBoardProps) {
 
         <button
           className="new-product"
-          onClick={() => setNewProductOrCategory(true)}
-          disabled={newProductOrCategory}
+          onClick={() =>
+            setNewProductOrCategory(
+              activeTab === tabsTitle.ESTOQUE
+                ? tabsTitle.ESTOQUE
+                : tabsTitle.CATEGORIAS,
+            )
+          }
+          disabled={newProductOrCategory != null}
         >
           <Plus size={16} />
 
@@ -617,16 +626,14 @@ function DashBoard({ activeTab }: dasBoardProps) {
 
       {activeTab === tabsTitle.ESTOQUE ? (
         <ProductsTable
-          productsData={mockedProductsData}
-          newProduct={activeTab === tabsTitle.ESTOQUE && newProductOrCategory}
+          productsData={[]}
+          newProduct={newProductOrCategory === tabsTitle.ESTOQUE}
           setNewProduct={setNewProductOrCategory}
         />
       ) : (
         <CategoriesGrid
-          categoriesData={mockedCategoriesData}
-          newCategory={
-            activeTab === tabsTitle.CATEGORIAS && newProductOrCategory
-          }
+          categoriesData={[]}
+          newCategory={newProductOrCategory === tabsTitle.CATEGORIAS}
           setNewCategory={setNewProductOrCategory}
         />
       )}
