@@ -1,33 +1,25 @@
-import {
-  IProductData,
-  ITabs,
-  tabsTitle,
-  ICategoryData,
-} from "./types";
-import SvgBoxIconSelected from "@/public/BoxIconSelected.svg";
-import SvgBoxIconUnselected from "@/public/BoxIconUnselected.svg";
-import SvgFunnelIconSelected from "@/public/FunnelIconSelected.svg";
-import SvgFunnelIconUnselected from "@/public/FunnelIconUnselected.svg";
+import { IProductData, ITabs, tabsTitle, ICategoryData } from "./types";
+import { Package, Filter } from "lucide-react";
 
 export const mockedProductsData: IProductData[] = [
   {
     id: 1,
     name: "maçã",
-    categoryId: 1, 
+    categoryId: 1,
     price: 10.0,
     qtdInStock: 67,
   },
   {
     id: 2,
     name: "banana",
-    categoryId: 1, 
+    categoryId: 1,
     price: 15.0,
     qtdInStock: 69,
   },
   {
     id: 3,
     name: "amaciante",
-    categoryId: 4, 
+    categoryId: 4,
     price: 20.0,
     qtdInStock: 24,
   },
@@ -59,12 +51,10 @@ export const mockedCategoriesData: ICategoryData[] = [
 export const TABS: ITabs[] = [
   {
     title: tabsTitle.ESTOQUE,
-    selectedIcon: SvgBoxIconSelected,
-    unselectedIcon: SvgBoxIconUnselected,
+    icon: <Package size={16} />,
   },
   {
     title: tabsTitle.CATEGORIAS,
-    selectedIcon: SvgFunnelIconSelected,
-    unselectedIcon: SvgFunnelIconUnselected,
+    icon: <Filter size={16} />,
   },
 ];

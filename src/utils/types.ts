@@ -21,6 +21,5 @@ export interface IProductData {
 
 export interface ITabs {
   title: tabsTitle;
-  selectedIcon: string;
-  unselectedIcon: string;
+  icon: React.ReactNode;
 }

@@ -19,6 +19,9 @@ export const arimo = Arimo({
 export const metadata: Metadata = {
   title: "Fresh Stock",
   description: "Welcome to Fresh Stock!",
+  icons: {
+    icon: "/assets/FreshStockIcon.svg",
+  },
 };
 
 export default function RootLayout({

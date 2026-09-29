@@ -29,11 +29,7 @@
         padding: 7px;
         background-color: $green;
         border-radius: 4px;
-
-        .icon {
-          height: 18px;
-          width: 18px;
-        }
+        color: $white;
       }
 
       h1 {
@@ -65,6 +61,8 @@
         padding: 10px 16px;
         gap: 12px;
 
+        color: rgba($alt-stroke, 70%);
+
         &:hover {
           background-color: rgba($alt-stroke, 5%);
         }
@@ -81,6 +79,7 @@
         &.active {
           border: 1px solid rgba($alt-stroke, 5%);
           background-color: rgba($alt-stroke, 10%);
+          color: $white;
 
           span {
             color: $white;
@@ -176,6 +175,7 @@
         border-radius: 6px;
         gap: 8px;
         padding: 10px 20px;
+        color: $white;
 
         &:hover {
           background-color: rgba($green, 90%);
@@ -214,23 +214,36 @@
 
       padding: 20px;
 
-      input {
-        padding: 8px 16px 8px 36px;
-        border-radius: 6px;
-        background-color: $main-bg;
-        border: 1px solid $main-stroke;
+      .search-products {
+        position: relative;
+        display: flex;
+        align-items: center;
         width: 100%;
-        max-width: 350px;
 
-        font-family: $arimo;
-        font-weight: normal;
-        font-size: 14px;
-        line-height: auto;
-        letter-spacing: 0;
-        color: rgba($font-dark, 50%);
+        .icon {
+          position: absolute;
+          bottom: 9px;
+          left: 12px;
+        }
 
-        &:focus {
-          outline-color: $green;
+        input {
+          padding: 8px 16px 8px 36px;
+          border-radius: 6px;
+          background-color: $main-bg;
+          border: 1px solid $main-stroke;
+          width: 100%;
+          max-width: 350px;
+
+          font-family: $arimo;
+          font-weight: normal;
+          font-size: 14px;
+          line-height: auto;
+          letter-spacing: 0;
+          color: rgba($font-dark, 50%);
+
+          &:focus {
+            outline-color: $green;
+          }
         }
       }
 
@@ -292,7 +305,7 @@
       }
     }
 
-    form.body {
+    .body {
       width: 100%;
 
       table.table {
@@ -543,9 +556,12 @@
           gap: 12px;
 
           .icon {
+            display: flex;
+            align-items: center;
             border-radius: 100px;
             background-color: $green-light;
             padding: 11px;
+            color: $green;
           }
 
           .text {

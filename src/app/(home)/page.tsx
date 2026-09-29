@@ -8,16 +8,17 @@ import {
   Package,
   Search,
   Plus,
-  Filter,
-  MoreHorizontal,
   Pencil,
   Trash2,
   Check,
   X,
-  ChevronDown,
   Tag,
 } from "lucide-react";
-import { ICategoryData, IProductData, tabsTitle } from "@/src/utils/types";
+import {
+  ICategoryData,
+  IProductData,
+  tabsTitle,
+} from "@/src/utils/types";
 import {
   mockedCategoriesData,
   mockedProductsData,
@@ -30,11 +31,7 @@ import {
   saveProducts,
   updateProduct,
 } from "@/src/services/product/productRepositoryMock";
-import SvgBoxIconSelected from "@/public/BoxIconSelected.svg";
-import SvgPlusIcon from "@/public/PlusIcon.svg";
-import SvgLabelIcon from "@/public/LabelIcon.svg";
-import SvgGreyPlusIcon from "@/public/GreyPlusIcon.svg";
-import SvgNoProductsIcon from "@/public/NoProductsIcon.svg";
+import SvgNoProductsIcon from "@/public/assets/NoProductsIcon.svg";
 import { useForm } from "react-hook-form";
 import {
   createCategory,
@@ -54,7 +51,7 @@ function SideBar({ setActiveTab, activeTab }: sideBarProps) {
     <section className="side-bar">
       <header className="header">
         <div className="icon-box">
-          <Image src={SvgBoxIconSelected} alt="" className="icon" />
+          <Package size={18} />
         </div>
         <h1>FreshStock</h1>
       </header>
@@ -69,10 +66,7 @@ function SideBar({ setActiveTab, activeTab }: sideBarProps) {
               className={`tab ${active ? "active" : ""}`}
               onClick={() => setActiveTab(tab.title)}
             >
-              <Image
-                src={active ? tab.selectedIcon : tab.unselectedIcon}
-                alt=""
-              />
+              {tab.icon}
               <span>{tab.title}</span>
             </button>
           );
@@ -122,6 +116,7 @@ function ProductsTable({
     mode: "onChange",
     reValidateMode: "onChange",
   });
+  const { isValid } = formData.formState;
 
   useEffect(() => {
     const storedProducts = getProducts();
@@ -144,8 +139,8 @@ function ProductsTable({
   }, [editProductId]);
 
   useEffect(() => {
-    if (newProduct == true) {
-      formData.reset();
+    if (newProduct) {
+      formData.reset({ name: "", price: 0, qtdInStock: 0, categoryId: 1 });
     }
   }, [newProduct]);
 
@@ -161,22 +156,23 @@ function ProductsTable({
     setEditProductId(null);
   }
 
-  function handleCreateProduct(
-    data: Pick<IProductData, "name" | "price" | "qtdInStock" | "categoryId">,
-  ) {
-    setProductsDataControl((prev) => createProduct(prev, data));
+  function handleCreateProduct() {
+    setProductsDataControl((prev) => createProduct(prev, formData.getValues()));
     setNewProduct(false);
   }
 
   return (
     <section className="products-table">
       <div className="header">
-        <input
-          type="text"
-          placeholder="Buscar produtos..."
-          value={selectedName}
-          onChange={(e) => setSelectedName(e.target.value)}
-        />
+        <div className="search-products">
+          <Search size={16} className="icon" />{" "}
+          <input
+            type="text"
+            placeholder="Buscar produtos..."
+            value={selectedName}
+            onChange={(e) => setSelectedName(e.target.value)}
+          />
+        </div>
 
         <div className="filter">
           <span>Filtrar: </span>
@@ -202,7 +198,7 @@ function ProductsTable({
           <p>Nenhum produto disponível no momento.</p>
         </div>
       ) : (
-        <form className="body">
+        <div className="body">
           <table className="table">
             <thead>
               <tr>
@@ -343,7 +339,11 @@ function ProductsTable({
                   <td>
                     <input
                       className="edit-product-input"
-                      {...formData.register("name", { required: true })}
+                      {...formData.register("name", {
+                        required: true,
+                        validate: (value) =>
+                          value != "" || "O produto deve ter um nome",
+                      })}
                     />
                   </td>
 
@@ -353,6 +353,8 @@ function ProductsTable({
                       {...formData.register("price", {
                         required: true,
                         valueAsNumber: true,
+                        validate: (value) =>
+                          value > 0.0 || "O preço deve ser maior que 0",
                       })}
                       type="number"
                     />
@@ -363,6 +365,8 @@ function ProductsTable({
                       {...formData.register("qtdInStock", {
                         required: true,
                         valueAsNumber: true,
+                        validate: (value) =>
+                          value >= 0 || "A quantidade não pode ser negativa",
                       })}
                       type="number"
                     />
@@ -374,7 +378,6 @@ function ProductsTable({
                         required: true,
                         valueAsNumber: true,
                       })}
-                      value={formData.getValues("categoryId")}
                     >
                       {mockedCategoriesData.map((category, index) => (
                         <option
@@ -389,9 +392,9 @@ function ProductsTable({
 
                   <td className="action">
                     <button
-                      onClick={() => handleCreateProduct(formData.getValues())}
+                      onClick={() => handleCreateProduct()}
                       type="button"
-                      disabled={formData.formState.isValid}
+                      disabled={!isValid}
                     >
                       <Check className="icon" />
                     </button>
@@ -408,7 +411,7 @@ function ProductsTable({
               )}
             </tbody>
           </table>
-        </form>
+        </div>
       )}
 
       <footer>
@@ -495,7 +498,7 @@ function CategoriesGrid({
           <div key={`${category.id}`} className="card default">
             <div className="left">
               <div className="icon">
-                <Image src={SvgLabelIcon} alt="" />
+                <Tag size={16} />
               </div>
               <div className="text">
                 <span>{category.name}</span>
@@ -602,7 +605,7 @@ function DashBoard({ activeTab }: dasBoardProps) {
           onClick={() => setNewProductOrCategory(true)}
           disabled={newProductOrCategory}
         >
-          <Image src={SvgPlusIcon} alt="" />
+          <Plus size={16} />
 
           <span>
             {activeTab === tabsTitle.ESTOQUE

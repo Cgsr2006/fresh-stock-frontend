@@ -18,11 +18,14 @@ export function createProduct(
     ? Math.max(...products.map((product) => product.id))
     : 0;
 
+  console.log(lastId);
+  console.log(data);
+
   return [
     ...products,
     {
-      id: lastId + 1,
       ...data,
+      id: lastId + 1,
     },
   ];
 }
