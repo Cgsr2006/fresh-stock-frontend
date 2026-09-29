@@ -23,11 +23,26 @@ import {
   mockedProductsData,
   TABS,
 } from "@/src/utils/data";
+import {
+  createProduct,
+  deleteProduct,
+  getProducts,
+  saveProducts,
+  updateProduct,
+} from "@/src/services/product/productRepositoryMock";
 import SvgBoxIconSelected from "@/public/BoxIconSelected.svg";
 import SvgPlusIcon from "@/public/PlusIcon.svg";
 import SvgLabelIcon from "@/public/LabelIcon.svg";
 import SvgGreyPlusIcon from "@/public/GreyPlusIcon.svg";
 import SvgNoProductsIcon from "@/public/NoProductsIcon.svg";
+import { useForm } from "react-hook-form";
+import {
+  createCategory,
+  deleteCategory,
+  getCategories,
+  saveCategories,
+  updateCategory,
+} from "@/src/services/category/categoryRepositoryMock";
 
 interface sideBarProps {
   activeTab: tabsTitle;
@@ -77,12 +92,18 @@ function SideBar({ setActiveTab, activeTab }: sideBarProps) {
 
 interface productTableProps {
   productsData: IProductData[];
+  newProduct: boolean;
+  setNewProduct: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function ProductsTable({ productsData }: productTableProps) {
+function ProductsTable({
+  productsData,
+  newProduct,
+  setNewProduct,
+}: productTableProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedName, setSelectedName] = useState<string>("");
-  const [editCategory, setEditCategory] = useState<number>(-1);
+  const [editProductId, setEditProductId] = useState<number | null>(null); // Guarda um valor nulo ou o id do produto que será editado
   const [productsDataControl, setProductsDataControl] =
     useState<IProductData[]>(mockedProductsData);
   const filteredMockedData = productsDataControl.filter((product) => {
@@ -95,23 +116,56 @@ function ProductsTable({ productsData }: productTableProps) {
 
     return matchesCategory && matchesName;
   });
+  const formData = useForm<
+    Pick<IProductData, "name" | "price" | "qtdInStock" | "categoryId">
+  >({
+    mode: "onChange",
+    reValidateMode: "onChange",
+  });
 
   useEffect(() => {
-    const storedProducts = localStorage.getItem("products");
+    const storedProducts = getProducts();
 
     if (storedProducts) {
-      setProductsDataControl(JSON.parse(storedProducts));
+      setProductsDataControl(storedProducts);
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("products", JSON.stringify(productsDataControl));
+    saveProducts(productsDataControl);
   }, [productsDataControl]);
 
-  function deleteProduct(id: number) {
-    setProductsDataControl((prevProducts) =>
-      prevProducts.filter((product) => product.id != id),
-    );
+  useEffect(() => {
+    if (editProductId) {
+      const control = filteredMockedData.filter((e) => e.id === editProductId);
+
+      formData.reset(...control);
+    }
+  }, [editProductId]);
+
+  useEffect(() => {
+    if (newProduct == true) {
+      formData.reset();
+    }
+  }, [newProduct]);
+
+  function handleDeleteProduct(id: number) {
+    setProductsDataControl((prev) => deleteProduct(prev, id));
+  }
+
+  function handleUpdateProduct(
+    id: number,
+    data: Pick<IProductData, "name" | "price" | "qtdInStock" | "categoryId">,
+  ) {
+    setProductsDataControl((prev) => updateProduct(prev, id, data));
+    setEditProductId(null);
+  }
+
+  function handleCreateProduct(
+    data: Pick<IProductData, "name" | "price" | "qtdInStock" | "categoryId">,
+  ) {
+    setProductsDataControl((prev) => createProduct(prev, data));
+    setNewProduct(false);
   }
 
   return (
@@ -134,10 +188,7 @@ function ProductsTable({ productsData }: productTableProps) {
           >
             <option value="">All</option>{" "}
             {mockedCategoriesData.map((category, index) => (
-              <option
-                key={`${category.name}-${index}`}
-                value={category.id.toString()}
-              >
+              <option key={`${category.name}-${index}`} value={category.id}>
                 {category.name}
               </option>
             ))}
@@ -145,7 +196,7 @@ function ProductsTable({ productsData }: productTableProps) {
         </div>
       </div>
 
-      {productsDataControl.length === 0 || productsData.length === 0 ? (
+      {productsDataControl.length === 0 ? (
         <div className="no-products">
           <Image src={SvgNoProductsIcon} alt="Nenhum produto disponível" />
           <p>Nenhum produto disponível no momento.</p>
@@ -171,30 +222,95 @@ function ProductsTable({ productsData }: productTableProps) {
                 );
 
                 return (
-                  <tr key={product.id} className="product-row">
+                  <tr key={product.id}>
                     <td className="id">
                       {product.id.toString().padStart(3, "0")}
                     </td>
-                    <td>{product.name}</td>
-                    <td className="price">
-                      R${" "}
-                      {product.price.toLocaleString("pt-BR", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </td>
-                    <td>
-                      <div className="stock">{product.qtdInStock} unid.</div>
-                    </td>
-                    <td>
-                      <div className="category">
-                        <Tag className="icon" />
-                        {categoryName?.name}
-                      </div>
-                    </td>
+                    {editProductId === product.id ? (
+                      <>
+                        <td>
+                          <input
+                            className="edit-product-input"
+                            {...formData.register("name", { required: true })}
+                          />
+                        </td>
+
+                        <td>
+                          <input
+                            className="edit-product-input"
+                            {...formData.register("price", {
+                              required: true,
+                              valueAsNumber: true,
+                            })}
+                            type="number"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            className="edit-product-input"
+                            {...formData.register("qtdInStock", {
+                              required: true,
+                              valueAsNumber: true,
+                            })}
+                            type="number"
+                          />
+                        </td>
+                        <td>
+                          <select
+                            className="category-select"
+                            {...formData.register("categoryId", {
+                              required: true,
+                              valueAsNumber: true,
+                            })}
+                          >
+                            {mockedCategoriesData.map((category, index) => (
+                              <option
+                                key={`${category.name}-${index}`}
+                                value={category.id}
+                              >
+                                {category.name}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td>{product.name}</td>
+                        <td className="price">
+                          R${" "}
+                          {product.price.toLocaleString("pt-BR", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </td>
+                        <td>
+                          <div className="stock">
+                            {product.qtdInStock} unid.
+                          </div>
+                        </td>
+                        <td>
+                          <div className="category">
+                            <Tag className="icon" />
+                            {categoryName?.name}
+                          </div>
+                        </td>
+                      </>
+                    )}
+
                     <td className="action">
-                      <button onClick={() => setEditCategory(product.id)}>
-                        {product.id === editCategory ? (
+                      <button
+                        onClick={() =>
+                          editProductId != null
+                            ? handleUpdateProduct(
+                                editProductId,
+                                formData.getValues(),
+                              )
+                            : setEditProductId(product.id)
+                        }
+                        type="button"
+                      >
+                        {product.id === editProductId ? (
                           <Check className="icon" />
                         ) : (
                           <Pencil className="icon" />
@@ -202,14 +318,94 @@ function ProductsTable({ productsData }: productTableProps) {
                       </button>
                       <button
                         className="alt"
-                        onClick={() => deleteProduct(product.id)}
+                        type="button"
+                        onClick={() =>
+                          editProductId != null
+                            ? setEditProductId(null)
+                            : handleDeleteProduct(product.id)
+                        }
                       >
-                        <Trash2 className="icon" />
+                        {product.id === editProductId ? (
+                          <X className="icon" />
+                        ) : (
+                          <Trash2 className="icon" />
+                        )}
                       </button>
                     </td>
                   </tr>
                 );
               })}
+
+              {newProduct && (
+                <tr>
+                  <td className="id">?</td>
+
+                  <td>
+                    <input
+                      className="edit-product-input"
+                      {...formData.register("name", { required: true })}
+                    />
+                  </td>
+
+                  <td>
+                    <input
+                      className="edit-product-input"
+                      {...formData.register("price", {
+                        required: true,
+                        valueAsNumber: true,
+                      })}
+                      type="number"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      className="edit-product-input"
+                      {...formData.register("qtdInStock", {
+                        required: true,
+                        valueAsNumber: true,
+                      })}
+                      type="number"
+                    />
+                  </td>
+                  <td>
+                    <select
+                      className="category-select"
+                      {...formData.register("categoryId", {
+                        required: true,
+                        valueAsNumber: true,
+                      })}
+                      value={formData.getValues("categoryId")}
+                    >
+                      {mockedCategoriesData.map((category, index) => (
+                        <option
+                          key={`${category.name}-${index}`}
+                          value={category.id}
+                        >
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+
+                  <td className="action">
+                    <button
+                      onClick={() => handleCreateProduct(formData.getValues())}
+                      type="button"
+                      disabled={formData.formState.isValid}
+                    >
+                      <Check className="icon" />
+                    </button>
+
+                    <button
+                      onClick={() => setNewProduct(false)}
+                      type="button"
+                      className="alt"
+                    >
+                      <X className="icon" />
+                    </button>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </form>
@@ -217,7 +413,7 @@ function ProductsTable({ productsData }: productTableProps) {
 
       <footer>
         <small>
-          Mostrando {filteredMockedData.length} de {mockedProductsData.length}{" "}
+          Mostrando {filteredMockedData.length} de {productsDataControl.length}{" "}
           produtos
         </small>
       </footer>
@@ -227,76 +423,152 @@ function ProductsTable({ productsData }: productTableProps) {
 
 interface categoriesGridProps {
   categoriesData: ICategoryData[];
+  newCategory: boolean;
+  setNewCategory: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function CategoriesGrid({ categoriesData }: categoriesGridProps) {
+function CategoriesGrid({
+  categoriesData,
+  newCategory,
+  setNewCategory,
+}: categoriesGridProps) {
   const [categoriesDataControl, setCategoriesDataControl] =
     useState<ICategoryData[]>(mockedCategoriesData);
+  const [editCategoryId, setEditCategoryId] = useState<number | null>(null);
+
+  const formData = useForm<Pick<ICategoryData, "name">>({
+    mode: "onChange",
+    reValidateMode: "onChange",
+  });
 
   useEffect(() => {
-    const storedCategories = localStorage.getItem("categories");
+    const storedCategories = getCategories();
 
     if (storedCategories) {
-      setCategoriesDataControl(JSON.parse(storedCategories));
+      setCategoriesDataControl(storedCategories);
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("categories", JSON.stringify(categoriesDataControl));
+    saveCategories(categoriesDataControl);
   }, [categoriesDataControl]);
 
-  function addNewCategory() {
-    setCategoriesDataControl((prevCategories) => {
-      const lastId = prevCategories.length
-        ? Math.max(...prevCategories.map((category) => category.id))
-        : 0;
+  useEffect(() => {
+    if (newCategory == true) {
+      formData.reset();
+    }
+  }, [newCategory]);
 
-      return [
-        ...prevCategories,
-        {
-          id: lastId + 1,
-          name: "Food",
-          qtdProductsInStock: 0,
-        },
-      ];
-    });
+  useEffect(() => {
+    if (editCategoryId) {
+      const control = categoriesDataControl.filter(
+        (e) => e.id === editCategoryId,
+      );
+
+      formData.reset(...control);
+    }
+  }, [editCategoryId]);
+
+  function handleAddNewCategory() {
+    setCategoriesDataControl((prev) =>
+      createCategory(prev, formData.getValues()),
+    );
+
+    setNewCategory(false);
   }
 
-  function deleteCategory(id: number) {
-    setCategoriesDataControl((prevCategories) =>
-      prevCategories.filter((category) => category.id != id),
+  function handleUpdateCategory(id: number) {
+    setCategoriesDataControl((prev) =>
+      updateCategory(prev, id, formData.getValues("name")),
     );
+    setEditCategoryId(null);
+  }
+
+  function handleDeleteCategory(id: number) {
+    setCategoriesDataControl((prev) => deleteCategory(prev, id));
   }
 
   return (
     <section className="categories-grid">
-      {categoriesDataControl.map((category) => (
-        <div key={`${category.id}`} className="card">
-          <div className="left">
+      {categoriesDataControl.map((category) => {
+        return editCategoryId != category.id ? (
+          <div key={`${category.id}`} className="card default">
+            <div className="left">
+              <div className="icon">
+                <Image src={SvgLabelIcon} alt="" />
+              </div>
+              <div className="text">
+                <span>{category.name}</span>
+                <small>{category.qtdProductsInStock} produtos</small>
+              </div>
+            </div>
+
+            <div className="buttons">
+              <button onClick={() => setEditCategoryId(category.id)}>
+                <Pencil className="icon" />
+              </button>
+              <button
+                className="alt"
+                onClick={() => handleDeleteCategory(category.id)}
+              >
+                <Trash2 className="icon" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div key={`${category.id}`} className="card alt">
+            <div className="top">
+              <div className="icon">
+                <Tag size={18} />
+              </div>
+              <input
+                type="text"
+                placeholder="Nova Categoria"
+                {...formData.register("name", { required: true })}
+              />
+            </div>
+
+            <div className="buttons">
+              <button className="alt" onClick={() => setEditCategoryId(null)}>
+                Cancelar
+              </button>
+              <button onClick={() => handleUpdateCategory(category.id)}>
+                Salvar
+              </button>
+            </div>
+          </div>
+        );
+      })}
+
+      {newCategory ? (
+        <div className="card alt">
+          <div className="top">
             <div className="icon">
-              <Image src={SvgLabelIcon} alt="" />
+              <Plus size={18} />
             </div>
-            <div className="text">
-              <span>{category.name}</span>
-              <small>{category.qtdProductsInStock} produtos</small>
-            </div>
+            <input
+              type="text"
+              placeholder="Nova Categoria"
+              {...formData.register("name", { required: true })}
+            />
           </div>
 
           <div className="buttons">
-            <button>
-              <Pencil className="icon" />
+            <button className="alt" onClick={() => setNewCategory(false)}>
+              Cancelar
             </button>
-            <button className="alt" onClick={() => deleteCategory(category.id)}>
-              <Trash2 className="icon" />
-            </button>
+            <button onClick={() => handleAddNewCategory()}>Criar</button>
           </div>
         </div>
-      ))}
-
-      <button className="new-category" onClick={() => addNewCategory()}>
-        <Image src={SvgGreyPlusIcon} alt="" />
-        <span>Criar nova categoria</span>
-      </button>
+      ) : (
+        <button
+          className="new-category-card"
+          onClick={() => setNewCategory(true)}
+        >
+          <Plus size={20} />
+          <span>Criar nova categoria</span>
+        </button>
+      )}
     </section>
   );
 }
@@ -306,6 +578,9 @@ interface dasBoardProps {
 }
 
 function DashBoard({ activeTab }: dasBoardProps) {
+  const [newProductOrCategory, setNewProductOrCategory] =
+    useState<boolean>(false);
+
   return (
     <section className="dashBoard">
       <div className="header">
@@ -322,7 +597,11 @@ function DashBoard({ activeTab }: dasBoardProps) {
           </p>
         </div>
 
-        <button className="new-product">
+        <button
+          className="new-product"
+          onClick={() => setNewProductOrCategory(true)}
+          disabled={newProductOrCategory}
+        >
           <Image src={SvgPlusIcon} alt="" />
 
           <span>
@@ -334,9 +613,19 @@ function DashBoard({ activeTab }: dasBoardProps) {
       </div>
 
       {activeTab === tabsTitle.ESTOQUE ? (
-        <ProductsTable productsData={mockedProductsData} />
+        <ProductsTable
+          productsData={mockedProductsData}
+          newProduct={activeTab === tabsTitle.ESTOQUE && newProductOrCategory}
+          setNewProduct={setNewProductOrCategory}
+        />
       ) : (
-        <CategoriesGrid categoriesData={mockedCategoriesData} />
+        <CategoriesGrid
+          categoriesData={mockedCategoriesData}
+          newCategory={
+            activeTab === tabsTitle.CATEGORIAS && newProductOrCategory
+          }
+          setNewCategory={setNewProductOrCategory}
+        />
       )}
     </section>
   );
