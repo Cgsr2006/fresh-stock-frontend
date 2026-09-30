@@ -29,12 +29,12 @@ export const mockedCategoriesData: ICategoryData[] = [
   {
     id: 1,
     name: "Food",
-    qtdProductsInStock: 2,
+    qtdProductsInStock: 0,
   },
   {
     id: 2,
     name: "Drink",
-    qtdProductsInStock: 7,
+    qtdProductsInStock: 0,
   },
   {
     id: 3,
@@ -44,7 +44,7 @@ export const mockedCategoriesData: ICategoryData[] = [
   {
     id: 4,
     name: "Cleaning",
-    qtdProductsInStock: 13,
+    qtdProductsInStock: 0,
   },
 ];
 

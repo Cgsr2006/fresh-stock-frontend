@@ -1,9 +1,9 @@
 import { ICategoryData } from "@/src/utils/types";
 
-export function getCategories(): ICategoryData[] {
+export function getCategories(): ICategoryData[] | null {
   const stored = localStorage.getItem("categories");
 
-  return stored ? JSON.parse(stored) : [];
+  return stored ? JSON.parse(stored) : null;
 }
 
 export function saveCategories(categories: ICategoryData[]) {

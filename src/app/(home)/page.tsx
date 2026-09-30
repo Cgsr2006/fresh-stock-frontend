@@ -47,6 +47,26 @@ interface sideBarProps {
   setActiveTab: React.Dispatch<React.SetStateAction<tabsTitle>>;
 }
 
+interface productTableProps {
+  productsData: IProductData[];
+  setProductsData: React.Dispatch<React.SetStateAction<IProductData[]>>;
+  newProduct: boolean;
+  setNewProduct: React.Dispatch<React.SetStateAction<tabsTitle | null>>;
+  categoriesData: ICategoryData[];
+}
+
+interface categoriesGridProps {
+  categoriesData: ICategoryData[];
+  setCategoriesData: React.Dispatch<React.SetStateAction<ICategoryData[]>>;
+  newCategory: boolean;
+  setNewCategory: React.Dispatch<React.SetStateAction<tabsTitle | null>>;
+  productsData: IProductData[];
+}
+
+interface dasBoardProps {
+  activeTab: tabsTitle;
+}
+
 function SideBar({ setActiveTab, activeTab }: sideBarProps) {
   return (
     <section className="side-bar">
@@ -85,24 +105,17 @@ function SideBar({ setActiveTab, activeTab }: sideBarProps) {
   );
 }
 
-interface productTableProps {
-  productsData: IProductData[];
-  newProduct: boolean;
-  setNewProduct: React.Dispatch<React.SetStateAction<tabsTitle | null>>;
-}
-
 function ProductsTable({
   productsData,
+  setProductsData,
   newProduct,
   setNewProduct,
+  categoriesData,
 }: productTableProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedName, setSelectedName] = useState<string>("");
   const [editProductId, setEditProductId] = useState<number | null>(null); // Guarda um valor nulo ou o id do produto que será editado
-  const [productsDataControl, setProductsDataControl] = useState<
-    IProductData[]
-  >(productsData.length > 0 ? productsData : mockedProductsData);
-  const filteredMockedData = productsDataControl.filter((product) => {
+  const filteredMockedData = productsData.filter((product) => {
     const matchesCategory =
       selectedCategory === "" ||
       product.categoryId.toString() === selectedCategory;
@@ -121,18 +134,6 @@ function ProductsTable({
   const { isValid } = formData.formState;
 
   useEffect(() => {
-    const storedProducts = getProducts();
-
-    if (storedProducts) {
-      setProductsDataControl(storedProducts);
-    }
-  }, []);
-
-  useEffect(() => {
-    saveProducts(productsDataControl);
-  }, [productsDataControl]);
-
-  useEffect(() => {
     if (editProductId) {
       const control = filteredMockedData.filter((e) => e.id === editProductId);
 
@@ -147,19 +148,19 @@ function ProductsTable({
   }, [newProduct]);
 
   function handleDeleteProduct(id: number) {
-    setProductsDataControl((prev) => deleteProduct(prev, id));
+    setProductsData((prev) => deleteProduct(prev, id));
   }
 
   function handleUpdateProduct(
     id: number,
     data: Pick<IProductData, "name" | "price" | "qtdInStock" | "categoryId">,
   ) {
-    setProductsDataControl((prev) => updateProduct(prev, id, data));
+    setProductsData((prev) => updateProduct(prev, id, data));
     setEditProductId(null);
   }
 
   function handleCreateProduct() {
-    setProductsDataControl((prev) => createProduct(prev, formData.getValues()));
+    setProductsData((prev) => createProduct(prev, formData.getValues()));
     setNewProduct(null);
   }
 
@@ -185,7 +186,7 @@ function ProductsTable({
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
             <option value="">All</option>{" "}
-            {mockedCategoriesData.map((category, index) => (
+            {categoriesData.map((category, index) => (
               <option key={`${category.name}-${index}`} value={category.id}>
                 {category.name}
               </option>
@@ -194,7 +195,7 @@ function ProductsTable({
         </div>
       </div>
 
-      {productsDataControl.length === 0 ? (
+      {productsData.length === 0 ? (
         <div className="no-products">
           <Image src={SvgNoProductsIcon} alt="Nenhum produto disponível" />
           <p>Nenhum produto disponível no momento.</p>
@@ -418,7 +419,7 @@ function ProductsTable({
 
       <footer>
         <small>
-          Mostrando {filteredMockedData.length} de {productsDataControl.length}{" "}
+          Mostrando {filteredMockedData.length} de {productsData.length}{" "}
           produtos
         </small>
       </footer>
@@ -426,38 +427,19 @@ function ProductsTable({
   );
 }
 
-interface categoriesGridProps {
-  categoriesData: ICategoryData[];
-  newCategory: boolean;
-  setNewCategory: React.Dispatch<React.SetStateAction<tabsTitle | null>>;
-}
-
 function CategoriesGrid({
   categoriesData,
+  setCategoriesData,
   newCategory,
   setNewCategory,
+  productsData,
 }: categoriesGridProps) {
-  const [categoriesDataControl, setCategoriesDataControl] = useState<
-    ICategoryData[]
-  >(categoriesData.length > 0 ? categoriesData : mockedCategoriesData);
   const [editCategoryId, setEditCategoryId] = useState<number | null>(null);
 
   const formData = useForm<Pick<ICategoryData, "name">>({
     mode: "onChange",
     reValidateMode: "onChange",
   });
-
-  useEffect(() => {
-    const storedCategories = getCategories();
-
-    if (storedCategories) {
-      setCategoriesDataControl(storedCategories);
-    }
-  }, []);
-
-  useEffect(() => {
-    saveCategories(categoriesDataControl);
-  }, [categoriesDataControl]);
 
   useEffect(() => {
     if (newCategory == true) {
@@ -467,36 +449,32 @@ function CategoriesGrid({
 
   useEffect(() => {
     if (editCategoryId) {
-      const control = categoriesDataControl.filter(
-        (e) => e.id === editCategoryId,
-      );
+      const control = categoriesData.filter((e) => e.id === editCategoryId);
 
       formData.reset(...control);
     }
   }, [editCategoryId]);
 
   function handleCreateCategory() {
-    setCategoriesDataControl((prev) =>
-      createCategory(prev, formData.getValues()),
-    );
+    setCategoriesData((prev) => createCategory(prev, formData.getValues()));
 
     setNewCategory(null);
   }
 
   function handleUpdateCategory(id: number) {
-    setCategoriesDataControl((prev) =>
+    setCategoriesData((prev) =>
       updateCategory(prev, id, formData.getValues("name")),
     );
     setEditCategoryId(null);
   }
 
   function handleDeleteCategory(id: number) {
-    setCategoriesDataControl((prev) => deleteCategory(prev, id));
+    setCategoriesData((prev) => deleteCategory(prev, id));
   }
 
   return (
     <section className="categories-grid">
-      {categoriesDataControl.map((category) => {
+      {categoriesData.map((category) => {
         return editCategoryId != category.id ? (
           <div key={`${category.id}`} className="card default">
             <div className="left">
@@ -579,13 +557,58 @@ function CategoriesGrid({
   );
 }
 
-interface dasBoardProps {
-  activeTab: tabsTitle;
-}
-
 function DashBoard({ activeTab }: dasBoardProps) {
   const [newProductOrCategory, setNewProductOrCategory] =
     useState<tabsTitle | null>(null);
+
+  const productsData: IProductData[] | null = null;
+  const categoriesData: ICategoryData[] | null = null;
+
+  const [productsDataControl, setProductsDataControl] = useState<
+    IProductData[]
+  >(productsData ? productsData : []);
+  const [categoriesDataControl, setCategoriesDataControl] = useState<
+    ICategoryData[]
+  >(categoriesData ? categoriesData : []);
+
+  useEffect(() => {
+    if (!productsData && !categoriesData) {
+      const storedCategories = getCategories();
+      const storedProducts = getProducts();
+
+      if (storedCategories) {
+        setCategoriesDataControl(storedCategories);
+      } else {
+        setCategoriesDataControl(mockedCategoriesData);
+      }
+
+      if (storedProducts) {
+        setProductsDataControl(storedProducts);
+      } else {
+        setProductsDataControl(mockedProductsData);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    saveCategories(categoriesDataControl);
+    saveProducts(productsDataControl);
+  }, [categoriesDataControl, productsDataControl]);
+
+  useEffect(() => {
+    if (categoriesDataControl.length > 0) {
+      const updatedCategoriesProductCount = categoriesDataControl.map(
+        (category) => ({
+          ...category,
+          qtdProductsInStock: productsDataControl.filter(
+            (product) => product.categoryId === category.id,
+          ).length,
+        }),
+      );
+
+      setCategoriesDataControl(updatedCategoriesProductCount);
+    }
+  }, [productsDataControl]);
 
   return (
     <section className="dashBoard">
@@ -626,15 +649,19 @@ function DashBoard({ activeTab }: dasBoardProps) {
 
       {activeTab === tabsTitle.ESTOQUE ? (
         <ProductsTable
-          productsData={[]}
+          productsData={productsDataControl}
+          setProductsData={setProductsDataControl}
           newProduct={newProductOrCategory === tabsTitle.ESTOQUE}
           setNewProduct={setNewProductOrCategory}
+          categoriesData={categoriesDataControl}
         />
       ) : (
         <CategoriesGrid
-          categoriesData={[]}
+          categoriesData={categoriesDataControl}
+          setCategoriesData={setCategoriesDataControl}
           newCategory={newProductOrCategory === tabsTitle.CATEGORIAS}
           setNewCategory={setNewProductOrCategory}
+          productsData={productsDataControl}
         />
       )}
     </section>

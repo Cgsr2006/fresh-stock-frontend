@@ -1,9 +1,9 @@
 import { IProductData } from "@/src/utils/types";
 
-export function getProducts(): IProductData[] {
+export function getProducts(): IProductData[] | null {
   const stored = localStorage.getItem("products");
 
-  return stored ? JSON.parse(stored) : [];
+  return stored ? JSON.parse(stored) : null;
 }
 
 export function saveProducts(products: IProductData[]) {
