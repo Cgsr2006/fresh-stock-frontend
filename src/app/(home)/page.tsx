@@ -14,33 +14,12 @@ import {
   X,
   Tag,
 } from "lucide-react";
-import {
-  ICategoryData,
-  IProductData,
-  ITabs,
-  tabsTitle,
-} from "@/src/utils/types";
-import {
-  mockedCategoriesData,
-  mockedProductsData,
-  TABS,
-} from "@/src/utils/data";
-import {
-  createProduct,
-  deleteProduct,
-  getProducts,
-  saveProducts,
-  updateProduct,
-} from "@/src/services/product/productRepositoryMock";
+import { ICategoryData, IProductData, tabsTitle } from "@/src/utils/types";
+import { TABS } from "@/src/utils/data";
+import { productRepository } from "@/src/services/product/productRepository";
 import SvgNoProductsIcon from "@/public/assets/NoProductsIcon.svg";
 import { useForm } from "react-hook-form";
-import {
-  createCategory,
-  deleteCategory,
-  getCategories,
-  saveCategories,
-  updateCategory,
-} from "@/src/services/category/categoryRepositoryMock";
+import { categoryRepository } from "@/src/services/category/categoryRepository";
 
 interface sideBarProps {
   activeTab: tabsTitle;
@@ -60,7 +39,6 @@ interface categoriesGridProps {
   setCategoriesData: React.Dispatch<React.SetStateAction<ICategoryData[]>>;
   newCategory: boolean;
   setNewCategory: React.Dispatch<React.SetStateAction<tabsTitle | null>>;
-  productsData: IProductData[];
 }
 
 interface dasBoardProps {
@@ -147,21 +125,37 @@ function ProductsTable({
     }
   }, [newProduct]);
 
-  function handleDeleteProduct(id: number) {
-    setProductsData((prev) => deleteProduct(prev, id));
+  async function handleDeleteProduct(id: number) {
+    const result = await productRepository.deleteProduct(id);
+
+    if (result !== null) {
+      setProductsData((prev) => prev.filter((product) => product.id !== id));
+    }
   }
 
-  function handleUpdateProduct(
-    id: number,
-    data: Pick<IProductData, "name" | "price" | "qtdInStock" | "categoryId">,
-  ) {
-    setProductsData((prev) => updateProduct(prev, id, data));
-    setEditProductId(null);
+  async function handleUpdateProduct(data: IProductData) {
+    const updatedProduct = await productRepository.updateProduct(data);
+
+    if (updatedProduct !== null) {
+      setProductsData((prev) =>
+        prev.map((product) =>
+          product.id === updatedProduct.id ? updatedProduct : product,
+        ),
+      );
+
+      setEditProductId(null);
+    }
   }
 
-  function handleCreateProduct() {
-    setProductsData((prev) => createProduct(prev, formData.getValues()));
-    setNewProduct(null);
+  async function handleCreateProduct() {
+    const newProduct = await productRepository.createProduct(
+      formData.getValues(),
+    );
+
+    if (newProduct !== null) {
+      setProductsData((prev) => [...prev, newProduct]);
+      setNewProduct(null);
+    }
   }
 
   return (
@@ -216,7 +210,7 @@ function ProductsTable({
 
             <tbody>
               {filteredMockedData.map((product) => {
-                const categoryName = mockedCategoriesData.find(
+                const categoryName = categoriesData.find(
                   (e) => e.id === product.categoryId,
                 );
 
@@ -262,7 +256,7 @@ function ProductsTable({
                               valueAsNumber: true,
                             })}
                           >
-                            {mockedCategoriesData.map((category, index) => (
+                            {categoriesData.map((category, index) => (
                               <option
                                 key={`${category.name}-${index}`}
                                 value={category.id}
@@ -301,10 +295,10 @@ function ProductsTable({
                       <button
                         onClick={() =>
                           editProductId != null
-                            ? handleUpdateProduct(
-                                editProductId,
-                                formData.getValues(),
-                              )
+                            ? handleUpdateProduct({
+                                id: product.id,
+                                ...formData.getValues(),
+                              })
                             : setEditProductId(product.id)
                         }
                         type="button"
@@ -382,7 +376,7 @@ function ProductsTable({
                         valueAsNumber: true,
                       })}
                     >
-                      {mockedCategoriesData.map((category, index) => (
+                      {categoriesData.map((category, index) => (
                         <option
                           key={`${category.name}-${index}`}
                           value={category.id}
@@ -432,7 +426,6 @@ function CategoriesGrid({
   setCategoriesData,
   newCategory,
   setNewCategory,
-  productsData,
 }: categoriesGridProps) {
   const [editCategoryId, setEditCategoryId] = useState<number | null>(null);
 
@@ -455,21 +448,43 @@ function CategoriesGrid({
     }
   }, [editCategoryId]);
 
-  function handleCreateCategory() {
-    setCategoriesData((prev) => createCategory(prev, formData.getValues()));
-
-    setNewCategory(null);
-  }
-
-  function handleUpdateCategory(id: number) {
-    setCategoriesData((prev) =>
-      updateCategory(prev, id, formData.getValues("name")),
+  async function handleCreateCategory() {
+    const newCategory = await categoryRepository.createCategory(
+      formData.getValues(),
     );
-    setEditCategoryId(null);
+
+    if (newCategory !== null) {
+      setCategoriesData((prev) => [...prev, newCategory]);
+
+      setNewCategory(null);
+    }
   }
 
-  function handleDeleteCategory(id: number) {
-    setCategoriesData((prev) => deleteCategory(prev, id));
+  async function handleUpdateCategory(id: number) {
+    const updatedCategory = await categoryRepository.updateCategory(
+      id,
+      formData.getValues("name"),
+    );
+
+    if (updatedCategory !== null) {
+      setCategoriesData((prev) =>
+        prev.map((category) =>
+          category.id === updatedCategory.id ? updatedCategory : category,
+        ),
+      );
+
+      setEditCategoryId(null);
+    }
+  }
+
+  async function handleDeleteCategory(id: number) {
+    const result = await categoryRepository.deleteCategory(id);
+
+    if (result !== null) {
+      setCategoriesData((prev) =>
+        prev.filter((category) => category.id !== id),
+      );
+    }
   }
 
   return (
@@ -560,40 +575,24 @@ function CategoriesGrid({
 function DashBoard({ activeTab }: dasBoardProps) {
   const [newProductOrCategory, setNewProductOrCategory] =
     useState<tabsTitle | null>(null);
-
-  const productsData: IProductData[] | null = null;
-  const categoriesData: ICategoryData[] | null = null;
-
   const [productsDataControl, setProductsDataControl] = useState<
     IProductData[]
-  >(productsData ? productsData : []);
+  >([]);
   const [categoriesDataControl, setCategoriesDataControl] = useState<
     ICategoryData[]
-  >(categoriesData ? categoriesData : []);
+  >([]);
 
   useEffect(() => {
-    if (!productsData && !categoriesData) {
-      const storedCategories = getCategories();
-      const storedProducts = getProducts();
+    async function loadData() {
+      const products = await productRepository.getProducts();
+      const categories = await categoryRepository.getCategories();
 
-      if (storedCategories) {
-        setCategoriesDataControl(storedCategories);
-      } else {
-        setCategoriesDataControl(mockedCategoriesData);
-      }
-
-      if (storedProducts) {
-        setProductsDataControl(storedProducts);
-      } else {
-        setProductsDataControl(mockedProductsData);
-      }
+      setProductsDataControl(products);
+      setCategoriesDataControl(categories);
     }
-  }, []);
 
-  useEffect(() => {
-    saveCategories(categoriesDataControl);
-    saveProducts(productsDataControl);
-  }, [categoriesDataControl, productsDataControl]);
+    loadData();
+  }, []);
 
   useEffect(() => {
     if (categoriesDataControl.length > 0) {
@@ -661,7 +660,6 @@ function DashBoard({ activeTab }: dasBoardProps) {
           setCategoriesData={setCategoriesDataControl}
           newCategory={newProductOrCategory === tabsTitle.CATEGORIAS}
           setNewCategory={setNewProductOrCategory}
-          productsData={productsDataControl}
         />
       )}
     </section>

@@ -1,53 +1,48 @@
-import { IProductData } from "@/src/utils/types";
+import { ProductRepository } from "@/src/utils/types";
 
-export function getProducts(): IProductData[] | null {
-  const stored = localStorage.getItem("products");
+export const mockProductRepository: ProductRepository = {
+  async getProducts() {
+    const stored = localStorage.getItem("products");
 
-  return stored ? JSON.parse(stored) : null;
-}
+    return stored ? JSON.parse(stored) : [];
+  },
 
-export function saveProducts(products: IProductData[]) {
-  localStorage.setItem("products", JSON.stringify(products));
-}
+  async createProduct(data) {
+    const products = await this.getProducts();
 
-export function createProduct(
-  products: IProductData[],
-  data: Pick<IProductData, "name" | "price" | "qtdInStock" | "categoryId">,
-): IProductData[] {
-  const lastId = products.length
-    ? Math.max(...products.map((product) => product.id))
-    : 0;
+    const lastId = products.length
+      ? Math.max(...products.map((product) => product.id))
+      : 0;
 
-  console.log(lastId);
-  console.log(data);
-
-  return [
-    ...products,
-    {
+    const newProduct = {
       ...data,
       id: lastId + 1,
-    },
-  ];
-}
+    };
 
-export function updateProduct(
-  products: IProductData[],
-  id: number,
-  data: Pick<IProductData, "name" | "price" | "qtdInStock" | "categoryId">,
-): IProductData[] {
-  return products.map((product) =>
-    product.id === id
-      ? {
-          id: product.id,
-          ...data,
-        }
-      : product,
-  );
-}
+    const updatedProducts = [...products, newProduct];
 
-export function deleteProduct(
-  products: IProductData[],
-  id: number,
-): IProductData[] {
-  return products.filter((product) => product.id !== id);
-}
+    localStorage.setItem("products", JSON.stringify(updatedProducts));
+
+    return newProduct;
+  },
+
+  async updateProduct(data) {
+    const products = await this.getProducts();
+
+    const updatedProducts = products.map((product) =>
+      product.id === data.id ? data : product,
+    );
+
+    localStorage.setItem("products", JSON.stringify(updatedProducts));
+
+    return data;
+  },
+
+  async deleteProduct(id) {
+    const products = await this.getProducts();
+
+    const updatedProducts = products.filter((product) => product.id !== id);
+
+    localStorage.setItem("products", JSON.stringify(updatedProducts));
+  },
+};
