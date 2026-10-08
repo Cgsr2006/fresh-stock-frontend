@@ -3,7 +3,7 @@
 import Image from "next/image";
 import "./style.scss";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Package,
   Search,
@@ -189,7 +189,7 @@ function ProductsTable({
         </div>
       </div>
 
-      {productsData.length === 0 ? (
+      {productsData.length === 0 && newProduct != true ? (
         <div className="no-products">
           <Image src={SvgNoProductsIcon} alt="Nenhum produto disponível" />
           <p>Nenhum produto disponível no momento.</p>
@@ -224,7 +224,11 @@ function ProductsTable({
                         <td>
                           <input
                             className="edit-product-input"
-                            {...formData.register("name", { required: true })}
+                            {...formData.register("name", {
+                              required: true,
+                              validate: (value) =>
+                                value != "" || "O produto deve ter um nome",
+                            })}
                           />
                         </td>
 
@@ -234,6 +238,9 @@ function ProductsTable({
                             {...formData.register("price", {
                               required: true,
                               valueAsNumber: true,
+                              validate: (value) =>
+                                (value != null && value > 0) ||
+                                "O preço deve ser um valor positivo",
                             })}
                             type="number"
                           />
@@ -244,6 +251,9 @@ function ProductsTable({
                             {...formData.register("qtdInStock", {
                               required: true,
                               valueAsNumber: true,
+                              validate: (value) =>
+                                (value != null && value >= 0) ||
+                                "A quantidade em estoque deve ser um valor não negativo",
                             })}
                             type="number"
                           />
@@ -302,6 +312,7 @@ function ProductsTable({
                             : setEditProductId(product.id)
                         }
                         type="button"
+                        disabled={!isValid}
                       >
                         {product.id === editProductId ? (
                           <Check className="icon" />
@@ -445,6 +456,8 @@ function CategoriesGrid({
       const control = categoriesData.filter((e) => e.id === editCategoryId);
 
       formData.reset(...control);
+    } else {
+      formData.reset({ name: "" });
     }
   }, [editCategoryId]);
 
@@ -498,7 +511,7 @@ function CategoriesGrid({
               </div>
               <div className="text">
                 <span>{category.name}</span>
-                <small>{category.qtdProductsInStock} produtos</small>
+                <small>{category.qtdProducts} produtos</small>
               </div>
             </div>
 
@@ -509,6 +522,7 @@ function CategoriesGrid({
               <button
                 className="alt"
                 onClick={() => handleDeleteCategory(category.id)}
+                disabled={category.qtdProducts > 0}
               >
                 <Trash2 className="icon" />
               </button>
@@ -582,6 +596,17 @@ function DashBoard({ activeTab }: dasBoardProps) {
     ICategoryData[]
   >([]);
 
+  const categoriesWithProductCount = useMemo(
+    () =>
+      categoriesDataControl.map((category) => ({
+        ...category,
+        qtdProducts: productsDataControl.filter(
+          (product) => product.categoryId === category.id,
+        ).length,
+      })),
+    [categoriesDataControl, productsDataControl],
+  );
+
   useEffect(() => {
     async function loadData() {
       const products = await productRepository.getProducts();
@@ -593,21 +618,6 @@ function DashBoard({ activeTab }: dasBoardProps) {
 
     loadData();
   }, []);
-
-  useEffect(() => {
-    if (categoriesDataControl.length > 0) {
-      const updatedCategoriesProductCount = categoriesDataControl.map(
-        (category) => ({
-          ...category,
-          qtdProductsInStock: productsDataControl.filter(
-            (product) => product.categoryId === category.id,
-          ).length,
-        }),
-      );
-
-      setCategoriesDataControl(updatedCategoriesProductCount);
-    }
-  }, [productsDataControl]);
 
   return (
     <section className="dashBoard">
@@ -634,7 +644,11 @@ function DashBoard({ activeTab }: dasBoardProps) {
                 : tabsTitle.CATEGORIAS,
             )
           }
-          disabled={newProductOrCategory != null}
+          disabled={
+            newProductOrCategory != null ||
+            (activeTab === tabsTitle.ESTOQUE &&
+              categoriesDataControl.length === 0)
+          }
         >
           <Plus size={16} />
 
@@ -656,7 +670,7 @@ function DashBoard({ activeTab }: dasBoardProps) {
         />
       ) : (
         <CategoriesGrid
-          categoriesData={categoriesDataControl}
+          categoriesData={categoriesWithProductCount}
           setCategoriesData={setCategoriesDataControl}
           newCategory={newProductOrCategory === tabsTitle.CATEGORIAS}
           setNewCategory={setNewProductOrCategory}

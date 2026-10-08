@@ -7,7 +7,7 @@ export enum tabsTitle {
 export interface ICategoryData {
   id: number;
   name: string;
-  qtdProductsInStock: number;
+  qtdProducts: number;
 }
 
 // Interface usada para a tipagem das informações da entidade Produtos

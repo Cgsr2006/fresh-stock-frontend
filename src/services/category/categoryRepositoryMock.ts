@@ -22,7 +22,7 @@ export const mockCategoryRepository: CategoryRepository = {
     const newCategory: ICategoryData = {
       id: lastId + 1,
       name: data.name,
-      qtdProductsInStock: 0,
+      qtdProducts: 0,
     };
 
     const updatedCategories = [...categories, newCategory];

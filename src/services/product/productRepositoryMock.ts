@@ -1,10 +1,11 @@
+import { mockedProductsData } from "@/src/utils/data";
 import { ProductRepository } from "@/src/utils/types";
 
 export const mockProductRepository: ProductRepository = {
   async getProducts() {
     const stored = localStorage.getItem("products");
 
-    return stored ? JSON.parse(stored) : [];
+    return stored ? JSON.parse(stored) : mockedProductsData;
   },
 
   async createProduct(data) {
