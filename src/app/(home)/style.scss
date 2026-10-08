@@ -1,4 +1,5 @@
 @use "@/src/scss/colors" as *;
+@use "@/src/scss/keyframes" as *;
 
 .page.home {
   display: flex;
@@ -284,6 +285,36 @@
           letter-spacing: 0px;
           color: $font-light;
         }
+      }
+    }
+
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      padding: 49px 24px;
+      gap: 1.5rem;
+      width: 100%;
+      border-bottom: 1px solid $main-stroke;
+
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid $main-stroke;
+        border-top-color: $green;
+        border-radius: 50%;
+
+        animation: spin 0.8s linear infinite;
+      }
+
+      p {
+        font-family: $arimo;
+        font-weight: 500;
+        font-size: 18px;
+        line-height: 20px;
+        letter-spacing: 0px;
+        color: $font-light;
       }
     }
 

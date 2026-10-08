@@ -32,6 +32,7 @@ interface productTableProps {
   newProduct: boolean;
   setNewProduct: React.Dispatch<React.SetStateAction<tabsTitle | null>>;
   categoriesData: ICategoryData[];
+  isLoading: boolean;
 }
 
 interface categoriesGridProps {
@@ -89,6 +90,7 @@ function ProductsTable({
   newProduct,
   setNewProduct,
   categoriesData,
+  isLoading,
 }: productTableProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedName, setSelectedName] = useState<string>("");
@@ -189,7 +191,12 @@ function ProductsTable({
         </div>
       </div>
 
-      {productsData.length === 0 && newProduct != true ? (
+      {isLoading ? (
+        <div className="loading">
+          <div className="spinner" />
+          <p>Carregando produtos...</p>
+        </div>
+      ) : productsData.length === 0 && newProduct != true ? (
         <div className="no-products">
           <Image src={SvgNoProductsIcon} alt="Nenhum produto disponível" />
           <p>Nenhum produto disponível no momento.</p>
@@ -589,6 +596,7 @@ function CategoriesGrid({
 function DashBoard({ activeTab }: dasBoardProps) {
   const [newProductOrCategory, setNewProductOrCategory] =
     useState<tabsTitle | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [productsDataControl, setProductsDataControl] = useState<
     IProductData[]
   >([]);
@@ -609,11 +617,19 @@ function DashBoard({ activeTab }: dasBoardProps) {
 
   useEffect(() => {
     async function loadData() {
-      const products = await productRepository.getProducts();
-      const categories = await categoryRepository.getCategories();
+      try {
+        const [products, categories] = await Promise.all([
+          productRepository.getProducts(),
+          categoryRepository.getCategories(),
+        ]);
 
-      setProductsDataControl(products);
-      setCategoriesDataControl(categories);
+        setProductsDataControl(products);
+        setCategoriesDataControl(categories);
+      } catch (error) {
+        console.error("Erro ao carregar produtos ou categorias:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
 
     loadData();
@@ -667,6 +683,7 @@ function DashBoard({ activeTab }: dasBoardProps) {
           newProduct={newProductOrCategory === tabsTitle.ESTOQUE}
           setNewProduct={setNewProductOrCategory}
           categoriesData={categoriesDataControl}
+          isLoading={isLoading}
         />
       ) : (
         <CategoriesGrid
