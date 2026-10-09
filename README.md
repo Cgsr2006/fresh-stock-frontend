@@ -22,6 +22,6 @@ O **Fresh Stock** é uma aplicação web de gestão de estoque desenvolvida para
 
 ## 🔗 Projeto Relacionado
 
-Este frontend consome a API REST disponível no repositório do backend: [fresh-stock-backend](#) *(link a ajustar quando o repositório for criado)*
+Este frontend consome a API REST disponível no repositório do backend: [fresh-stock-backend](#https://github.com/Cgsr2006/fresh-stock-backend)
 
 Backend desenvolvido em **Java** com **Spring Boot**, **Spring Data JPA** e banco de dados **MySQL** rodando em **Docker**, com documentação de API via **Swagger**.
