@@ -1,7 +1,8 @@
 import { mockCategoryRepository } from "./categoryRepositoryMock";
 import { apiCategoryRepository } from "./categoryRepositoryApi";
+import { createDynamicRepository } from "../createDynamicRepository";
 
-const apiCategories = await apiCategoryRepository.getCategories();
-
-export const categoryRepository =
-  apiCategories !== null ? apiCategoryRepository : mockCategoryRepository;
+export const categoryRepository = createDynamicRepository(
+  apiCategoryRepository,
+  mockCategoryRepository,
+);

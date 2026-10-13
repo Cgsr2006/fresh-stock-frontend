@@ -16,10 +16,12 @@ import {
 } from "lucide-react";
 import { ICategoryData, IProductData, tabsTitle } from "@/src/utils/types";
 import { TABS } from "@/src/utils/data";
-import { productRepository } from "@/src/services/product/productRepository";
 import SvgNoProductsIcon from "@/public/assets/NoProductsIcon.svg";
 import { useForm } from "react-hook-form";
+import { productRepository } from "@/src/services/product/productRepository";
 import { categoryRepository } from "@/src/services/category/categoryRepository";
+import { useCategories, useProducts } from "@/src/utils/hooks";
+import { KeyedMutator } from "swr";
 
 interface sideBarProps {
   activeTab: tabsTitle;
@@ -28,7 +30,7 @@ interface sideBarProps {
 
 interface productTableProps {
   productsData: IProductData[];
-  setProductsData: React.Dispatch<React.SetStateAction<IProductData[]>>;
+  mutateProducts: KeyedMutator<IProductData[]>;
   newProduct: boolean;
   setNewProduct: React.Dispatch<React.SetStateAction<tabsTitle | null>>;
   categoriesData: ICategoryData[];
@@ -37,7 +39,7 @@ interface productTableProps {
 
 interface categoriesGridProps {
   categoriesData: ICategoryData[];
-  setCategoriesData: React.Dispatch<React.SetStateAction<ICategoryData[]>>;
+  mutateCategories: KeyedMutator<ICategoryData[]>;
   newCategory: boolean;
   setNewCategory: React.Dispatch<React.SetStateAction<tabsTitle | null>>;
 }
@@ -86,7 +88,7 @@ function SideBar({ setActiveTab, activeTab }: sideBarProps) {
 
 function ProductsTable({
   productsData,
-  setProductsData,
+  mutateProducts,
   newProduct,
   setNewProduct,
   categoriesData,
@@ -127,11 +129,17 @@ function ProductsTable({
     }
   }, [newProduct]);
 
-  async function handleDeleteProduct(id: number) {
-    const result = await productRepository.deleteProduct(id);
+  async function handleCreateProduct() {
+    const newProduct = await productRepository.createProduct(
+      formData.getValues(),
+    );
 
-    if (result !== null) {
-      setProductsData((prev) => prev.filter((product) => product.id !== id));
+    if (newProduct !== null) {
+      await mutateProducts(
+        (currentProducts = []) => [...currentProducts, newProduct],
+        { revalidate: false },
+      );
+      setNewProduct(null);
     }
   }
 
@@ -139,24 +147,25 @@ function ProductsTable({
     const updatedProduct = await productRepository.updateProduct(data);
 
     if (updatedProduct !== null) {
-      setProductsData((prev) =>
-        prev.map((product) =>
-          product.id === updatedProduct.id ? updatedProduct : product,
-        ),
+      await mutateProducts(
+        (currentProducts = []) =>
+          currentProducts.map((product) =>
+            product.id === updatedProduct.id ? updatedProduct : product,
+          ),
+        { revalidate: false },
       );
 
       setEditProductId(null);
     }
   }
 
-  async function handleCreateProduct() {
-    const newProduct = await productRepository.createProduct(
-      formData.getValues(),
-    );
+  async function handleDeleteProduct(id: number) {
+    const result = await productRepository.deleteProduct(id);
 
-    if (newProduct !== null) {
-      setProductsData((prev) => [...prev, newProduct]);
-      setNewProduct(null);
+    if (result !== null) {
+      await mutateProducts((currentProducts = []) =>
+        currentProducts.filter((product) => product.id !== id),
+      );
     }
   }
 
@@ -441,7 +450,7 @@ function ProductsTable({
 
 function CategoriesGrid({
   categoriesData,
-  setCategoriesData,
+  mutateCategories,
   newCategory,
   setNewCategory,
 }: categoriesGridProps) {
@@ -474,7 +483,10 @@ function CategoriesGrid({
     );
 
     if (newCategory !== null) {
-      setCategoriesData((prev) => [...prev, newCategory]);
+      mutateCategories(
+        (currentCategories = []) => [...currentCategories, newCategory],
+        { revalidate: false },
+      );
 
       setNewCategory(null);
     }
@@ -487,10 +499,12 @@ function CategoriesGrid({
     );
 
     if (updatedCategory !== null) {
-      setCategoriesData((prev) =>
-        prev.map((category) =>
-          category.id === updatedCategory.id ? updatedCategory : category,
-        ),
+      mutateCategories(
+        (currentCategories = []) =>
+          currentCategories.map((category) =>
+            category.id === updatedCategory.id ? updatedCategory : category,
+          ),
+        { revalidate: false },
       );
 
       setEditCategoryId(null);
@@ -501,8 +515,10 @@ function CategoriesGrid({
     const result = await categoryRepository.deleteCategory(id);
 
     if (result !== null) {
-      setCategoriesData((prev) =>
-        prev.filter((category) => category.id !== id),
+      await mutateCategories(
+        (currentCategories = []) =>
+          currentCategories.filter((category) => category.id !== id),
+        { revalidate: false },
       );
     }
   }
@@ -596,13 +612,18 @@ function CategoriesGrid({
 function DashBoard({ activeTab }: dasBoardProps) {
   const [newProductOrCategory, setNewProductOrCategory] =
     useState<tabsTitle | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [productsDataControl, setProductsDataControl] = useState<
-    IProductData[]
-  >([]);
-  const [categoriesDataControl, setCategoriesDataControl] = useState<
-    ICategoryData[]
-  >([]);
+
+  const {
+    data: productsDataControl = [],
+    isLoading: isProductLoading,
+    mutate: mutateProducts,
+  } = useProducts();
+
+  const {
+    data: categoriesDataControl = [],
+    isLoading: isCategoryLoading,
+    mutate: mutateCategories,
+  } = useCategories();
 
   const categoriesWithProductCount = useMemo(
     () =>
@@ -614,26 +635,6 @@ function DashBoard({ activeTab }: dasBoardProps) {
       })),
     [categoriesDataControl, productsDataControl],
   );
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [products, categories] = await Promise.all([
-          productRepository.getProducts(),
-          categoryRepository.getCategories(),
-        ]);
-
-        setProductsDataControl(products);
-        setCategoriesDataControl(categories);
-      } catch (error) {
-        console.error("Erro ao carregar produtos ou categorias:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadData();
-  }, []);
 
   return (
     <section className="dashBoard">
@@ -679,16 +680,16 @@ function DashBoard({ activeTab }: dasBoardProps) {
       {activeTab === tabsTitle.ESTOQUE ? (
         <ProductsTable
           productsData={productsDataControl}
-          setProductsData={setProductsDataControl}
+          mutateProducts={mutateProducts}
           newProduct={newProductOrCategory === tabsTitle.ESTOQUE}
           setNewProduct={setNewProductOrCategory}
           categoriesData={categoriesDataControl}
-          isLoading={isLoading}
+          isLoading={isProductLoading || isCategoryLoading}
         />
       ) : (
         <CategoriesGrid
           categoriesData={categoriesWithProductCount}
-          setCategoriesData={setCategoriesDataControl}
+          mutateCategories={mutateCategories}
           newCategory={newProductOrCategory === tabsTitle.CATEGORIAS}
           setNewCategory={setNewProductOrCategory}
         />

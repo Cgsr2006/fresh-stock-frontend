@@ -1,7 +1,8 @@
 import { mockProductRepository } from "./productRepositoryMock";
 import { apiProductRepository } from "./productRepositoryApi";
+import { createDynamicRepository } from "../createDynamicRepository";
 
-const apiProducts = await apiProductRepository.getProducts();
-
-export const productRepository =
-  apiProducts !== null ? apiProductRepository : mockProductRepository;
+export const productRepository = createDynamicRepository(
+  apiProductRepository,
+  mockProductRepository,
+);
