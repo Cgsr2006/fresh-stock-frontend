@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import "./style.scss";
+import "./_style.scss";
 
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -49,16 +49,26 @@ interface dasBoardProps {
 }
 
 function SideBar({ setActiveTab, activeTab }: sideBarProps) {
+  const [linksVisibility, setLinksVisibility] = useState(false);
+
+  function handleTabClick(tabTitle: tabsTitle) {
+    setActiveTab(tabTitle);
+    setLinksVisibility(false);
+  }
+
   return (
-    <section className="side-bar">
-      <header className="header">
+    <nav className="side-bar">
+      <div
+        className="header"
+        onClick={() => setLinksVisibility(!linksVisibility)}
+      >
         <div className="icon-box">
           <Package size={18} />
         </div>
         <h1>FreshStock</h1>
-      </header>
+      </div>
 
-      <div className="tabs">
+      <div className={`tabs ${linksVisibility ? "" : "hidden"}`}>
         {TABS.map((tab, index) => {
           const active = tab.title === activeTab;
 
@@ -66,7 +76,7 @@ function SideBar({ setActiveTab, activeTab }: sideBarProps) {
             <button
               key={`tab-${index}`}
               className={`tab ${active ? "active" : ""}`}
-              onClick={() => setActiveTab(tab.title)}
+              onClick={() => handleTabClick(tab.title)}
             >
               {tab.icon}
               <span>{tab.title}</span>
@@ -82,7 +92,7 @@ function SideBar({ setActiveTab, activeTab }: sideBarProps) {
           <small>Admin</small>
         </div>
       </div>
-    </section>
+    </nav>
   );
 }
 
@@ -171,8 +181,8 @@ function ProductsTable({
 
   return (
     <section className="products-table">
-      <div className="header">
-        <div className="search-products">
+      <div className="filters">
+        <div className="name-filter">
           <Search size={16} className="icon" />{" "}
           <input
             type="text"
@@ -182,7 +192,7 @@ function ProductsTable({
           />
         </div>
 
-        <div className="filter">
+        <div className="category-filter">
           <span>Filtrar: </span>
 
           <select
