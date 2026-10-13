@@ -453,6 +453,12 @@
             letter-spacing: 0px;
             color: $font-dark;
 
+            &.name {
+              overflow: hidden;
+              text-overflow: ellipsis;
+              max-width: 100%;
+            }
+
             &.id {
               color: $font-light;
             }

@@ -11,7 +11,7 @@ export function createDynamicRepository<T extends object>(api: T, mock: T): T {
           const result = await apiRepo[key](...args);
 
           // nos "get", null significa que o back não respondeu
-          if (key.startsWith("get") && result == null) {
+          if (result === null || (key.startsWith("get") && result == null)) {
             throw new Error("API indisponível");
           }
 

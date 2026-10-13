@@ -2,17 +2,13 @@ import { ICategoryData, CategoryRepository } from "@/src/utils/types";
 
 export const apiCategoryRepository: CategoryRepository = {
   async getCategories() {
-    try {
-      const response = await fetch("http://localhost:8080/categories/getAll");
+    const response = await fetch("http://localhost:8080/categories/getAll");
 
-      if (!response.ok) {
-        return null;
-      }
-
-      return await response.json();
-    } catch {
+    if (!response.ok) {
       return null;
     }
+
+    return await response.json();
   },
 
   async createCategory(data) {

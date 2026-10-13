@@ -2,17 +2,13 @@ import { ProductRepository } from "@/src/utils/types";
 
 export const apiProductRepository: ProductRepository = {
   async getProducts() {
-    try {
-      const response = await fetch("http://localhost:8080/products/getAll");
+    const response = await fetch("http://localhost:8080/products/getAll");
 
-      if (!response.ok) {
-        return null;
-      }
-
-      return await response.json();
-    } catch {
+    if (!response.ok) {
       return null;
     }
+
+    return await response.json();
   },
 
   async createProduct(data) {

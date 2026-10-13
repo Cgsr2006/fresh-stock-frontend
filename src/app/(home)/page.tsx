@@ -265,10 +265,11 @@ function ProductsTable({
                               required: true,
                               valueAsNumber: true,
                               validate: (value) =>
-                                (value != null && value > 0) ||
+                                (value != null && value >= 0.0) ||
                                 "O preço deve ser um valor positivo",
                             })}
                             type="number"
+                            min={0}
                           />
                         </td>
                         <td>
@@ -282,6 +283,7 @@ function ProductsTable({
                                 "A quantidade em estoque deve ser um valor não negativo",
                             })}
                             type="number"
+                            min={0}
                           />
                         </td>
                         <td>
@@ -305,7 +307,7 @@ function ProductsTable({
                       </>
                     ) : (
                       <>
-                        <td>{product.name}</td>
+                        <td className="name">{product.name}</td>
                         <td className="price">
                           R${" "}
                           {product.price.toLocaleString("pt-BR", {
@@ -388,9 +390,10 @@ function ProductsTable({
                         required: true,
                         valueAsNumber: true,
                         validate: (value) =>
-                          value > 0.0 || "O preço deve ser maior que 0",
+                          value >= 0.0 || "O preço deve ser maior que 0",
                       })}
                       type="number"
+                      min={0}
                     />
                   </td>
                   <td>
@@ -403,6 +406,7 @@ function ProductsTable({
                           value >= 0 || "A quantidade não pode ser negativa",
                       })}
                       type="number"
+                      min={0}
                     />
                   </td>
                   <td>
@@ -492,7 +496,11 @@ function CategoriesGrid({
       formData.getValues(),
     );
 
+    console.log("teste");
+
     if (newCategory !== null) {
+      console.log("teste2");
+
       mutateCategories(
         (currentCategories = []) => [...currentCategories, newCategory],
         { revalidate: false },
