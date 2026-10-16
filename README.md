@@ -2,7 +2,7 @@
 
 O **Fresh Stock** é uma aplicação web de gestão de estoque desenvolvida para um pequeno mercado, permitindo o controle de produtos organizados por categoria (Alimentos, Bebidas, Higiene e Limpeza). Este repositório contém o **frontend**, construído em Next.js e integrado a uma API REST desenvolvida em Spring Boot.
 
-> Projeto acadêmico desenvolvido para a disciplina de Engenharia de Software (FAMETRO).
+> Projeto incialmente desenvolvido com teor acadêmico para a disciplina de Engenharia de Software, mas continuado como item pessoal.
 
 ## 🚀 Funcionalidades
 
