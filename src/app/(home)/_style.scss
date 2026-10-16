@@ -9,7 +9,8 @@
   width: 100%;
   min-height: 100dvh;
   height: auto;
-  max-width: $laptop-large;
+  //max-width: $laptop-large;
+  background-color: $main-bg;
 
   @media screen and (max-width: $tablet) {
     flex-direction: column;
@@ -43,7 +44,7 @@
       h1 {
         font-family: $tinos;
         font-weight: regular;
-        font-size: 20px;
+        font-size: 1.5rem;
         line-height: 28px;
         color: $white;
         letter-spacing: 0.5px;
@@ -78,7 +79,7 @@
         span {
           font-family: arimo;
           color: rgba($alt-stroke, 70%);
-          font-size: 14px;
+          font-size: 1rem;
           font-weight: 500;
           line-height: 20px;
           letter-spacing: 0px;
@@ -119,7 +120,7 @@
         h1 {
           font-family: $arimo;
           color: $white;
-          font-size: 14px;
+          font-size: 1rem;
           font-weight: 500;
           line-height: 20px;
           letter-spacing: 0px;
@@ -128,7 +129,7 @@
         small {
           font-family: $arimo;
           color: rgba($alt-stroke, 60%);
-          font-size: 12px;
+          font-size: 0.75rem;
           //font-weight: ;
           line-height: 16px;
           letter-spacing: 0px;
@@ -153,7 +154,7 @@
       }
     }
 
-    @media screen and (max-width: 500px) {
+    @media screen and (max-width: 520px) {
       flex-direction: column;
       align-items: start;
 
@@ -183,6 +184,8 @@
     flex-direction: column;
 
     width: 100%;
+    max-width: $laptop;
+    margin-inline: auto;
     //height: auto;
     background-color: $main-bg;
     padding: 48px;
@@ -204,7 +207,7 @@
         h1 {
           font-family: $tinos;
           color: $font-dark;
-          font-size: 36px;
+          font-size: 2.5rem;
           font-weight: normal;
           line-height: 40px;
           letter-spacing: -1px;
@@ -213,7 +216,7 @@
         p {
           font-family: $arimo;
           color: $font-light;
-          font-size: 16px;
+          font-size: 1.1rem;
           font-weight: 500;
           line-height: 24px;
           letter-spacing: 0px;
@@ -242,7 +245,7 @@
         span {
           font-family: $arimo;
           font-weight: 500;
-          font-size: 14px;
+          font-size: 1rem;
           line-height: 20px;
           letter-spacing: 0px;
           color: $white;
@@ -305,13 +308,22 @@
 
           font-family: $arimo;
           font-weight: normal;
-          font-size: 14px;
+          font-size: 1rem;
           line-height: auto;
           letter-spacing: 0;
           color: rgba($font-dark, 50%);
 
           &:focus {
             outline-color: $green;
+          }
+
+          ::placeholder {
+            font-family: $arimo;
+            font-weight: normal;
+            font-size: 1rem;
+            line-height: auto;
+            letter-spacing: 0;
+            color: rgba($font-dark, 50%);
           }
         }
       }
@@ -325,7 +337,7 @@
         span {
           font-family: $arimo;
           font-weight: 500;
-          font-size: 14px;
+          font-size: 1rem;
           line-height: 20px;
           letter-spacing: 0px;
           color: $font-light;
@@ -346,7 +358,7 @@
 
           font-family: $arimo;
           font-weight: 500;
-          font-size: 14px;
+          font-size: 1rem;
           line-height: 20px;
           letter-spacing: 0px;
           color: $font-light;
@@ -377,7 +389,7 @@
       p {
         font-family: $arimo;
         font-weight: 500;
-        font-size: 18px;
+        font-size: 1rem;
         line-height: 20px;
         letter-spacing: 0px;
         color: $font-light;
@@ -397,7 +409,7 @@
       p {
         font-family: $arimo;
         font-weight: 500;
-        font-size: 14px;
+        font-size: 1rem;
         line-height: 20px;
         letter-spacing: 0px;
         color: $font-light;
@@ -411,7 +423,7 @@
       table.table {
         border-collapse: collapse;
         width: 100%;
-        min-width: $laptop;
+        min-width: 900px;
 
         tr {
           display: grid;
@@ -430,7 +442,7 @@
             padding: 16px 24px;
             font-family: $arimo;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 0.915rem;
             line-height: 20px;
             letter-spacing: 0px;
             color: $font-light;
@@ -448,7 +460,7 @@
 
             font-family: $arimo;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 0.875rem;
             line-height: 20px;
             letter-spacing: 0px;
             color: $font-dark;
@@ -477,7 +489,7 @@
 
               font-family: $arimo;
               font-weight: bold;
-              font-size: 12px;
+              font-size: 0.75rem;
               line-height: 16px;
               letter-spacing: 0px;
             }
@@ -497,7 +509,7 @@
 
               font-family: $arimo;
               font-weight: 500;
-              font-size: 12px;
+              font-size: 0.75rem;
               line-height: 16px;
               letter-spacing: 0px;
               color: $font-light;
@@ -554,7 +566,7 @@
 
               font-family: $arimo;
               font-weight: normal;
-              font-size: 14px;
+              font-size: 0.875rem;
               line-height: auto;
               letter-spacing: 0;
               color: $font-dark;
@@ -579,7 +591,7 @@
 
               font-family: $arimo;
               font-weight: 500;
-              font-size: 14px;
+              font-size: 0.875rem;
               line-height: 20px;
               letter-spacing: 0px;
               color: $font-light;
@@ -595,7 +607,7 @@
       small {
         font-family: $arimo;
         font-weight: 500;
-        font-size: 14px;
+        font-size: 1rem;
         line-height: 20px;
         letter-spacing: 0px;
         color: $font-light;
@@ -691,7 +703,7 @@
             span {
               font-family: $arimo;
               font-weight: 600;
-              font-size: 16px;
+              font-size: 1rem;
               line-height: 28px;
               letter-spacing: 0px;
               color: $font-dark;
@@ -700,7 +712,7 @@
             small {
               font-family: $arimo;
               font-weight: normal;
-              font-size: 14px;
+              font-size: 0.875rem;
               line-height: 20px;
               letter-spacing: 0px;
               color: $font-light;
@@ -747,7 +759,7 @@
 
             font-family: $arimo;
             font-weight: normal;
-            font-size: 14px;
+            font-size: 0.875rem;
             line-height: auto;
             letter-spacing: 0;
             color: $font-dark;
@@ -771,7 +783,7 @@
 
             font-family: $arimo;
             font-weight: 500;
-            font-size: 12px;
+            font-size: 0.75rem;
             line-height: 16px;
             letter-spacing: 0px;
             color: $white;
@@ -819,8 +831,8 @@
       span {
         font-family: $arimo;
         font-weight: 500;
-        font-size: 16px;
-        line-height: 24px;
+        font-size: 1rem;
+        line-height: auto;
         letter-spacing: 0px;
         color: $font-light;
       }

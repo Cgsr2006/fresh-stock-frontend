@@ -4,7 +4,7 @@ import { categoryRepository } from "@/src/services/category/categoryRepository";
 
 export function useProducts() {
   const res = useSWR("products", () => productRepository.getProducts(), {
-    //refreshInterval: 5000,
+    refreshInterval: 5000,
     revalidateOnFocus: true,
     revalidateOnReconnect: true,
   });
@@ -14,7 +14,7 @@ export function useProducts() {
 
 export function useCategories() {
   const res = useSWR("categories", () => categoryRepository.getCategories(), {
-    //refreshInterval: 5000,
+    refreshInterval: 5000,
     revalidateOnFocus: true,
     revalidateOnReconnect: true,
   });
